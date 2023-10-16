@@ -1,0 +1,2 @@
+/Users/matthewarmstrong/Misc/runix/target/x86_64-unknown-none/debug/deps/artifact/kernel-7fecb6e9b3856290/bin/kernel-7fecb6e9b3856290
+cargo:rustc-env=UEFI_IMAGE=/Users/matthewarmstrong/Misc/runix/target/debug/build/runix-71444117adf52a11/out/runix-uefi.img

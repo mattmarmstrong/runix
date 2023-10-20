@@ -11,11 +11,8 @@ use crate::interrupts::idt::{
     GateOptions,
     InterruptDescriptorTable,
 };
-use crate::segmentation::{
-    tss::*,
-    TSS,
-};
-use crate::vmm::VirtualAddress;
+use crate::mmu::VirtualAddress;
+use crate::segmentation::tss::*;
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
@@ -28,7 +25,7 @@ pub struct ExceptionRegisters {
     ss: u64,
 }
 
-// Register values that manually pushed to stack during interrupts.
+// Register values that are manually pushed to stack during interrupts.
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct Registers {
@@ -132,7 +129,6 @@ impl InterruptVector {
 }
 
 lazy_static! {
-    // This code is an eye-sore, clean this up
     pub static ref IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
 
@@ -140,7 +136,8 @@ lazy_static! {
         let mut divide_by_zero_gate_descriptor = GateDescriptor::new(GateOptions::exception_gate_options());
         divide_by_zero_gate_descriptor.set_handler_address(VirtualAddress::new(divide_by_zero as u64));
 
-        let mut double_fault_gate_descriptor = GateDescriptor::new(GateOptions::exception_gate_options());
+        let double_fault_gate_options = GateOptions::exception_gate_options().set_stack_index(DOUBLE_FAULT_STACK_TABLE_INDEX);
+        let mut double_fault_gate_descriptor = GateDescriptor::new(double_fault_gate_options);
         double_fault_gate_descriptor.set_handler_address(VirtualAddress::new(double_fault as u64));
 
         idt.descriptor_table[InterruptVector::DIVIDE_ERROR] = divide_by_zero_gate_descriptor;

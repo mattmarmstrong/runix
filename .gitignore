@@ -1,2 +1,7 @@
-./Cargo.lock
-target
+# rust-specfic 
+debug/
+target/
+Cargo.lock
+
+# runix-specific
+serial_output.log

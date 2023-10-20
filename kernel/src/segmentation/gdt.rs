@@ -1,8 +1,8 @@
 use core::arch::asm;
 use core::mem::size_of;
 
+use crate::mmu::VirtualAddress;
 use crate::segmentation::tss::TaskStateSegment;
-use crate::vmm::VirtualAddress;
 
 #[derive(Debug, Clone, Copy)]
 pub struct GlobalDescriptorTable {
@@ -118,8 +118,8 @@ impl SegmentDescriptor {
             limit_low: (size_of::<TaskStateSegment>() - 1) as u16,
             base_low: (tss_ptr.inner & 0x0000_FFFF) as u16,
             base_middle: ((tss_ptr.inner & 0x00FF_0000) >> 16) as u8,
-            access: 0xE9 as u8,
-            granularity: 0x00 as u8,
+            access: 0xE9,
+            granularity: 0x00,
             base_high: ((tss_ptr.inner & 0xFF00_0000) >> 24) as u8,
         };
         let tss_system_segment_high = SegmentDescriptor {

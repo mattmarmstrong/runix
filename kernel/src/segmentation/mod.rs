@@ -22,7 +22,13 @@ pub struct GDTWithSegmentSelectors {
     pub selectors: Selectors,
 }
 
-pub static mut TSS: TaskStateSegment = TaskStateSegment::new();
+lazy_static! {
+    pub static ref TSS: TaskStateSegment = {
+        let mut tss = TaskStateSegment::new();
+        unsafe { tss.init_interrupt_stack_table(DOUBLE_FAULT_STACK_TABLE_INDEX, DOUBLE_FAULT_STACK) }
+        tss
+    };
+}
 
 lazy_static! {
     pub static ref GDT: GDTWithSegmentSelectors = {
@@ -32,7 +38,7 @@ lazy_static! {
         let kernel_data_selector = gdt.set_entry(2, SegmentDescriptor::kernel_data_segment_descriptor(), DPL_0);
         let user_code_selector = gdt.set_entry(3, SegmentDescriptor::user_code_segment_descriptor(), DPL_3);
         let user_data_selector = gdt.set_entry(4, SegmentDescriptor::user_data_segment_descriptor(), DPL_3);
-        let (tss_system_segment_low, tss_system_segment_high) = SegmentDescriptor::tss_system_segment(unsafe { &TSS });
+        let (tss_system_segment_low, tss_system_segment_high) = SegmentDescriptor::tss_system_segment(&TSS);
         let tss_selector = gdt.set_entry(5, tss_system_segment_low, DPL_0);
         let _ = gdt.set_entry(6, tss_system_segment_high, DPL_0); // Ignore the high segment
         let selectors = Selectors {

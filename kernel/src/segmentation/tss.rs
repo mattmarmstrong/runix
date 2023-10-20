@@ -1,6 +1,6 @@
 use core::mem::size_of;
 
-use crate::vmm::VirtualAddress;
+use crate::mmu::VirtualAddress;
 
 const STACK_SIZE: usize = 4096 * 5;
 
@@ -51,5 +51,11 @@ impl TaskStateSegment {
         let stack_ptr: u64 = (&stack as *const _ as usize + STACK_SIZE) as u64;
         let canonical_stack_ptr = VirtualAddress::new(stack_ptr);
         self.interrupt_stack_table[stack_table_index] = canonical_stack_ptr;
+    }
+
+    pub fn init_priviledge_stack_table(&mut self, stack_table_index: usize, stack: [u8; STACK_SIZE]) {
+        let stack_ptr: u64 = (&stack as *const _ as usize + STACK_SIZE) as u64;
+        let canonical_stack_ptr = VirtualAddress::new(stack_ptr);
+        self.privilege_stack_table[stack_table_index] = canonical_stack_ptr;
     }
 }

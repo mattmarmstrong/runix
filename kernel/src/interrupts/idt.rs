@@ -1,9 +1,9 @@
 use core::arch::asm;
 use core::mem::size_of;
 
+use crate::mmu::VirtualAddress;
 use crate::segmentation::asm::get_cs;
 use crate::segmentation::gdt::SegmentSelector;
-use crate::vmm::VirtualAddress;
 
 #[derive(Debug, Clone)]
 #[repr(C)]

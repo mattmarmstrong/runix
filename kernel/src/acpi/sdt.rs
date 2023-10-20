@@ -3,9 +3,17 @@ use crate::mmu::{
     PhysicalAddress,
 };
 
-// TODO: if we end up using a bunch of these system tables, break this out into individual files
-// TODO: checksum validation
-// Error Handling
+#[repr(transparent)]
+pub struct SDTSignature {
+    inner: [u8; 4],
+}
+
+impl SDTSignature {
+    pub const FADT_SIGNATURE: SDTSignature = SDTSignature { inner: *b"FACP" };
+    pub const MADT_SIGNATURE: SDTSignature = SDTSignature { inner: *b"APIC" };
+    pub const SSDT_SIGNATURE: SDTSignature = SDTSignature { inner: *b"SSDT" };
+}
+
 pub trait SystemDescriptorTable {
     unsafe fn from_raw_physical_address(raw_sdt_physical_address: u64) -> Self
     where
@@ -18,16 +26,7 @@ pub trait SystemDescriptorTable {
         *raw_sdt
     }
 }
-#[repr(transparent)]
-pub struct SDTSignature {
-    inner: [u8; 4],
-}
 
-impl SDTSignature {
-    pub const FADT_SIGNATURE: SDTSignature = SDTSignature { inner: *b"FACP" };
-    pub const MADT_SIGNATURE: SDTSignature = SDTSignature { inner: *b"APIC" };
-    pub const SSDT_SIGNATURE: SDTSignature = SDTSignature { inner: *b"SSDT" };
-}
 #[derive(Debug, Clone, Copy)]
 #[repr(C, packed)]
 pub struct SDTHeader {

@@ -36,4 +36,5 @@ https://github.com/cs61/cs61-psets-f17
 
 https://github.com/sorpaas/rux
 
+https://github.com/hermit-os/kernel/tree/main
 

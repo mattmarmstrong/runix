@@ -87,8 +87,8 @@ impl XSDP {
     unsafe fn try_read_from_raw_address(raw_rsdp_physical_address: u64) -> Result<XSDP, XSDPError> {
         let rsdp_physical_address = PhysicalAddress::new(raw_rsdp_physical_address);
         let rsdp_virtual_address = phys_to_virt_address(rsdp_physical_address);
-        let raw_xsdp = rsdp_virtual_address.inner as *const XSDP;
-        let xsdp: XSDP = *raw_xsdp;
+        let xsdp_ref = rsdp_virtual_address.inner as *const XSDP;
+        let xsdp: XSDP = *xsdp_ref;
         match xsdp.valid_signature() {
             true => Ok(xsdp),
             false => Err(XSDPError::XSDReadError),

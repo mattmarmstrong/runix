@@ -16,6 +16,22 @@ pub struct InvalidVirtualAddress {
     pub inner: u64,
 }
 
+impl core::ops::Add for VirtualAddress {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        let raw_add_result = self.inner + rhs.inner;
+        VirtualAddress::new(raw_add_result)
+    }
+}
+
+impl core::ops::Sub for VirtualAddress {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
+        let raw_sub_result = self.inner + rhs.inner;
+        VirtualAddress::new(raw_sub_result)
+    }
+}
+
 impl core::fmt::Display for VirtualAddress {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_fmt(format_args!("Virtual Address: {:#X}", self.inner))
@@ -81,6 +97,22 @@ pub struct PhysicalAddress {
 #[derive(Debug)]
 pub struct InvalidPhysicalAddress {
     pub inner: u64,
+}
+
+impl core::ops::Add for PhysicalAddress {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        let raw_add_result = self.inner + rhs.inner;
+        PhysicalAddress::new(raw_add_result)
+    }
+}
+
+impl core::ops::Sub for PhysicalAddress {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
+        let raw_sub_result = self.inner + rhs.inner;
+        PhysicalAddress::new(raw_sub_result)
+    }
 }
 
 impl core::fmt::Display for PhysicalAddress {

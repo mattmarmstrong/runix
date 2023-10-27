@@ -1,5 +1,5 @@
 //use crate::acpi::fadt::FADT;
-use crate::acpi::madt::MADT;
+use crate::acpi::madt::APICStructures;
 use crate::acpi::xsdp::XSDP;
 use crate::acpi::xsdt::XSDT;
 

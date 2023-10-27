@@ -47,7 +47,10 @@ impl CpuInfo {
         match cpu_vendor.as_str() {
             "GenuineIntel" => cpu_info.cpu_vendor = Some(CpuVendor::Intel),
             "AuthenticAMD" => cpu_info.cpu_vendor = Some(CpuVendor::Amd),
-            _ => unreachable!(),
+            _ => {
+                log::warn!("UNSUPPORTED CHIP VENDOR");
+                cpu_info.cpu_vendor = None;
+            }
         }
         cpu_info.acpi_enabled = cpu_features.has_acpi();
         cpu_info.sse3_enabled = cpu_features.has_sse3();

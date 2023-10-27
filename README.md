@@ -19,8 +19,7 @@ https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-ar
 
 https://wiki.osdev.org/
 
-
-Other cool repos I've been using as references:
+Repo links:
 
 https://github.com/klange/toaruos
 

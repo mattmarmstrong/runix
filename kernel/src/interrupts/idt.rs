@@ -77,7 +77,7 @@ pub struct GateOptions {
 
 impl GateOptions {
     pub fn minimal() -> Self {
-        // interrupt gate by default, meaning interrupts are automatically be disabled/re-enabled by the CPU
+        // interrupt gate by default, meaning interrupts are automatically disabled/re-enabled by the CPU
         GateOptions { inner: 0x0E00 }
     }
 

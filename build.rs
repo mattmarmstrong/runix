@@ -10,9 +10,7 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     let uefi_path = out_dir.join("runix-uefi.img");
 
-    kernel_disk_image_builder
-        .create_uefi_image(&uefi_path)
-        .unwrap();
+    kernel_disk_image_builder.create_uefi_image(&uefi_path).unwrap();
 
     // Exporting the UEFI_IMAGE variable for the rust compiler to use
     println!("cargo:rustc-env=UEFI_IMAGE={}", uefi_path.display());

@@ -171,6 +171,6 @@ pub fn phys_to_virt_address(phys_address: PhysicalAddress) -> VirtualAddress {
     VirtualAddress::new(KERNEL_BASE_ADDRESS + phys_address.inner)
 }
 
-pub fn virt_to_physical_address(virt_address: VirtualAddress) -> PhysicalAddress {
+pub fn virt_to_phys_address(virt_address: VirtualAddress) -> PhysicalAddress {
     PhysicalAddress::new(virt_address.inner - KERNEL_BASE_ADDRESS)
 }

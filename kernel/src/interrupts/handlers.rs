@@ -13,7 +13,7 @@ use crate::{
 pub extern "C" fn divide_by_zero_secondary_handler(exception_stack_frame: &mut ExceptionStackFrame) {
     log::error!("DIVIDE BY ZERO EXCEPTION");
     log::error!("EXCEPTION REGISTERS: {}", exception_stack_frame.interrupt_registers);
-    log::error!("REGISTERS: {}", exception_stack_frame.registers);
+    log::error!("EXECUTION STATE: {}", exception_stack_frame.execution_state);
     panic!();
 }
 
@@ -21,7 +21,7 @@ pub extern "C" fn divide_by_zero_secondary_handler(exception_stack_frame: &mut E
 pub extern "C" fn double_fault_secondary_handler(exception_stack_frame: &mut ExceptionStackFrameWithErrorCode) {
     log::error!("DOUBLE FAULT EXCEPTION");
     log::error!("EXCEPTION REGISTERS: {}", exception_stack_frame.interrupt_registers);
-    log::error!("REGISTERS: {}", exception_stack_frame.registers);
+    log::error!("EXECUTION STATE: {}", exception_stack_frame.execution_state);
     log::error!("ERROR CODE: {:#X}", exception_stack_frame.error_code);
     panic!();
 }

@@ -2,7 +2,7 @@ use core::ptr::{
     addr_of,
     read_unaligned,
 };
-use core::str;
+use core::slice::from_raw_parts;
 
 use crate::mmu::{
     phys_to_virt_address,
@@ -59,12 +59,12 @@ impl core::fmt::Display for SDTHeader {
             let creator_revision = read_unaligned(raw_creator_revision);
             f.write_fmt(format_args!(
                 "SDT Header Values:\nSignature: {}\nLength: {:#X}\nVersion: {}\nChecksum: {:#X}\nOEMID: {}\nOEM Table ID: {}\nOEM Version: {}\nCreator ID: {}\nCreator Version: {}",
-                str::from_utf8(&signature).unwrap(),
+                core::str::from_utf8(&signature).unwrap(),
                 length,
                 revision,
                 checksum,
-                str::from_utf8(&oemid).unwrap(),
-                str::from_utf8(&oem_table_id).unwrap(),
+                core::str::from_utf8(&oemid).unwrap(),
+                core::str::from_utf8(&oem_table_id).unwrap(),
                 oem_revision,
                 creator_id,
                 creator_revision,
@@ -79,9 +79,14 @@ impl SDTHeader {
         self.signature == sdt_signature.inner
     }
 
-    pub fn valid_checksum(&self) -> bool {
-        // TODO: fix this
-        (self.checksum & 0xFF) == 0
+    pub fn valid_checksum(&self, raw_sdt_start_address: u64) -> bool {
+        let virtual_start_address = phys_to_virt_address(PhysicalAddress::new(raw_sdt_start_address));
+        let raw_sdt_byte_slice =
+            unsafe { from_raw_parts(virtual_start_address.inner as *const _, self.length as usize) };
+        let checksum = raw_sdt_byte_slice
+            .iter()
+            .fold(0, |sum: u8, byte| sum.wrapping_add(*byte));
+        checksum == 0
     }
 
     // We should read the header directly, then parse it to build the specific SDT struct
@@ -94,15 +99,21 @@ impl SDTHeader {
         let raw_sdt_header = sdt_virtual_address.inner as *const Self;
         let sdt_header = *raw_sdt_header;
         // TODO: compute and validate the checksum as well
-        match sdt_header.valid_signature(sdt_signature) {
-            true => Ok(sdt_header),
-            false => Err(SDTHeaderError::SDTSignatureValidationError),
+        match (
+            sdt_header.valid_signature(sdt_signature),
+            sdt_header.valid_checksum(raw_sdt_physical_address),
+        ) {
+            (true, true) => Ok(sdt_header),
+            (false, true) => Err(SDTHeaderError::SDTSignatureValidationError),
+            (true, false) => Err(SDTHeaderError::SDTChecksumValidationError),
+            (false, false) => Err(SDTHeaderError::SDTHeaderNotFoundError),
         }
     }
 }
 
 #[derive(Debug)]
 pub enum SDTHeaderError {
+    SDTHeaderNotFoundError,
     SDTSignatureValidationError,
     SDTChecksumValidationError,
 }
@@ -110,6 +121,7 @@ pub enum SDTHeaderError {
 impl core::fmt::Display for SDTHeaderError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
+            Self::SDTHeaderNotFoundError => f.write_str("SDT Validation Error: SDT Not Found"),
             Self::SDTChecksumValidationError => f.write_str("SDT Validation Error: Invalid Checksum"),
             Self::SDTSignatureValidationError => f.write_str("SDT Validation Error: Invalid Signature"),
         }
@@ -117,5 +129,5 @@ impl core::fmt::Display for SDTHeaderError {
 }
 
 pub trait SystemDescriptorTable {
-    unsafe fn init(raw_sdt_physical_address: u64) -> Self;
+    unsafe fn read_from_raw_address(raw_sdt_physical_address: u64) -> Self;
 }

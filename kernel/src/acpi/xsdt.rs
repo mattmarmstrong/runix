@@ -19,7 +19,7 @@ pub struct XSDT {
 }
 
 impl SystemDescriptorTable for XSDT {
-    unsafe fn init(raw_xsdt_physical_address: u64) -> Self {
+    unsafe fn read_from_raw_address(raw_xsdt_physical_address: u64) -> Self {
         let header = SDTHeader::try_read_from_phys_addr(raw_xsdt_physical_address, &SDTSignature::XSDT).unwrap();
         let size_of_sdt_header = size_of::<SDTHeader>() as u64;
         let sdt_address_table_size = header.length as u64 - size_of_sdt_header;
@@ -35,7 +35,7 @@ impl SystemDescriptorTable for XSDT {
 }
 
 impl XSDT {
-    pub unsafe fn get_raw_sdt_table_address(&self, sdt_signature: &SDTSignature) -> Option<u64> {
+    pub unsafe fn try_get_raw_sdt_table_address(&self, sdt_signature: &SDTSignature) -> Option<u64> {
         for raw_sdt_address in self.sdt_address_table {
             if let Ok(_) = SDTHeader::try_read_from_phys_addr(*raw_sdt_address, sdt_signature) {
                 return Some(*raw_sdt_address);

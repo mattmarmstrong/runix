@@ -1,16 +1,11 @@
-//use crate::acpi::sdt::{
-//    SDTHeader,
-//    SystemDescriptorTable,
-//};
-//
-//#[derive(Debug)]
-//#[repr(C, packed)]
-//pub struct FADT {
-//    fadt_header: SDTHeader,
-//}
-//
-//impl SystemDescriptorTable for FADT {
-//    fn init(raw_fadt_physical_address: u64) -> Self {
-//       FADT { fadt_header: SDT: }
-//    }
-//}
+use crate::acpi::sdt::{
+    SDTHeader,
+    SystemDescriptorTable,
+};
+
+// TODO: Everything FADT related
+#[derive(Debug, Clone, Copy)]
+#[repr(C, packed)]
+pub struct FADT {
+    header: SDTHeader,
+}

@@ -2,7 +2,6 @@
 #![feature(naked_functions)]
 #![feature(asm_const)]
 
-use bootloader_api::BootInfo;
 use bootloader_x86_64_common::logger::LockedLogger;
 use conquer_once::spin::OnceCell;
 

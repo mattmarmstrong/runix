@@ -1,1 +1,0 @@
-pub const LAPIC_PHYSICAL_BASE: u64 = 0xFEE0000;

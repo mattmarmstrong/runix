@@ -20,7 +20,7 @@ pub struct XSDP {
     revision: u8,
     rsdt_address: u32,
     length: u32,
-    xsdt_address: u64,
+    pub xsdt_address: u64,
     extended_checksum: u8,
     _reserved: [u8; 3],
 }
@@ -84,8 +84,8 @@ impl XSDP {
         (self.extended_checksum & 0xFF) == 0
     }
 
-    unsafe fn try_read_from_raw_address(raw_rsdp_physical_address: u64) -> Result<XSDP, XSDPError> {
-        let rsdp_physical_address = PhysicalAddress::new(raw_rsdp_physical_address);
+    unsafe fn try_read_from_raw_address(raw_xsdp_physical_address: u64) -> Result<XSDP, XSDPError> {
+        let rsdp_physical_address = PhysicalAddress::new(raw_xsdp_physical_address);
         let rsdp_virtual_address = phys_to_virt_address(rsdp_physical_address);
         let xsdp_ref = rsdp_virtual_address.inner as *const XSDP;
         let xsdp: XSDP = *xsdp_ref;

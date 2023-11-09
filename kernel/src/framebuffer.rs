@@ -7,7 +7,7 @@ use crate::LOGGER;
 
 // The bootloader provides most of the abstractions here
 pub fn init_kernel_logging(boot_info: &'static mut BootInfo) {
-    // this is a Option<Optional<FrameBuffer>>. The API is kind of ugly
+    // this is a Option<Optional<FrameBuffer>>. The BootInfo API is kind of ugly
     let boot_info_framebuffer = &mut boot_info.framebuffer;
     let framebuffer_option = boot_info_framebuffer.as_mut();
     let framebuffer = framebuffer_option.unwrap();

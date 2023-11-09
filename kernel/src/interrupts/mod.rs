@@ -4,7 +4,7 @@ pub mod idt;
 
 use lazy_static::lazy_static;
 
-use self::asm::enable_interrupts;
+use crate::interrupts::asm::enable_interrupts;
 use crate::interrupts::handlers::*;
 use crate::interrupts::idt::{
     GateDescriptor,
@@ -28,7 +28,7 @@ pub struct ExceptionRegisters {
 // Register values that are manually pushed to stack during interrupts.
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
-pub struct Registers {
+pub struct ExecutionState {
     r15: u64,
     r14: u64,
     r13: u64,
@@ -55,7 +55,7 @@ impl core::fmt::Display for ExceptionRegisters {
     }
 }
 
-impl core::fmt::Display for Registers {
+impl core::fmt::Display for ExecutionState {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_fmt(format_args!(
             "RAX: {:#X} RBX: {:#X} RCX: {:#X}\nRDX: {:#X} RSI: {:#X} RDI: {:#X}\nRBP: {:#X} R8: {:#X} R9: {:#X}\nR10: {:#X} R11: {:#X} R12: {:#X}\nR13: {:#X} R14: {:#X} R15: {:#X}",
@@ -81,14 +81,14 @@ impl core::fmt::Display for Registers {
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct ExceptionStackFrame {
-    registers: Registers,
+    execution_state: ExecutionState,
     interrupt_registers: ExceptionRegisters,
 }
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct ExceptionStackFrameWithErrorCode {
-    registers: Registers,
+    execution_state: ExecutionState,
     error_code: u64,
     interrupt_registers: ExceptionRegisters,
 }

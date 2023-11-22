@@ -26,6 +26,7 @@ lazy_static! {
     pub static ref TSS: TaskStateSegment = {
         let mut tss = TaskStateSegment::new();
         unsafe { tss.init_interrupt_stack_table(DOUBLE_FAULT_STACK_TABLE_INDEX, DOUBLE_FAULT_STACK) }
+        unsafe { tss.init_interrupt_stack_table(PAGE_FAULT_STACK_TABLE_INDEX, PAGE_FAULT_STACK) }
         tss
     };
 }

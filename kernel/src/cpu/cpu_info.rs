@@ -20,6 +20,7 @@ impl CpuVendor {
 pub struct CPUInfo {
     pub cpu_vendor: Option<CpuVendor>,
     pub acpi_enabled: bool,
+    pub msr_present: bool,
     pub sse3_enabled: bool,
     pub apic_enabled: bool,
     pub x2apic_enabled: bool,
@@ -29,9 +30,10 @@ pub struct CPUInfo {
 impl core::fmt::Display for CPUInfo {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_fmt(format_args!(
-            "CPU INFO:\nVendor: {}\nFeature Enabled: ACPI Thermal Control MSRs - {}\nFeature Enabled: SSE3 - {}\nFeature Enabled: APIC - {}\nFeature Enabled: X2APIC - {}\nInitial APIC ID: {}",
+            "CPU INFO:\nVendor: {}\nFeature Enabled: ACPI Thermal Control MSRs - {}\nFeature Enabled: MSR Instructions - {}\nFeature Enabled: SSE3 - {}\nFeature Enabled: APIC - {}\nFeature Enabled: X2APIC - {}\nInitial APIC ID: {}",
             self.cpu_vendor.as_ref().unwrap().to_str(),
             self.acpi_enabled,
+            self.msr_present,
             self.sse3_enabled,
             self.apic_enabled,
             self.x2apic_enabled,
@@ -45,6 +47,7 @@ impl CPUInfo {
         CPUInfo {
             cpu_vendor: None,
             acpi_enabled: false,
+            msr_present: false,
             sse3_enabled: false,
             apic_enabled: false,
             x2apic_enabled: false,
@@ -66,12 +69,14 @@ impl CPUInfo {
             }
         }
         cpu_info.acpi_enabled = cpu_features.has_acpi();
+        cpu_info.msr_present = cpu_features.has_msr();
         cpu_info.sse3_enabled = cpu_features.has_sse3();
         cpu_info.apic_enabled = cpu_features.has_apic();
         cpu_info.x2apic_enabled = cpu_features.has_x2apic();
         if cpu_info.apic_enabled {
             cpu_info.apic_id = Some(cpu_features.initial_local_apic_id());
         }
+        log::info!("CPU Info: {}", cpu_info);
         cpu_info
     }
 }

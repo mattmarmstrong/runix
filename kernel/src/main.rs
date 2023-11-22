@@ -27,11 +27,11 @@ entry_point!(kmain, config = &BOOTLOADER_CONFIG);
 fn kmain(boot_info: &'static mut BootInfo) -> ! {
     let rsdp_addr = boot_info.rsdp_addr.into_option().unwrap();
     kernel::framebuffer::init_kernel_logging(boot_info);
-    kernel::cpu::log_cpu_info();
     kernel::acpi::read_acpi_tables(rsdp_addr);
     kernel::segmentation::init_gdt();
     kernel::interrupts::init_idt();
-    unsafe { asm!("int 3") }
+    kernel::cpu::init_cpu_intrinsics();
+    log::info!("{}", kernel::cpu::CPU_INFO.get().unwrap());
     loop {}
 }
 

@@ -1,6 +1,9 @@
 use std::env::current_exe;
 use std::fs::copy;
-use std::process::{exit, Command};
+use std::process::{
+    exit,
+    Command,
+};
 
 use ovmf_prebuilt::ovmf_pure_efi;
 

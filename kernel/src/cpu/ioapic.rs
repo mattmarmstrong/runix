@@ -7,7 +7,6 @@ use crate::mmu::{
     PhysicalAddress,
     VirtualAddress,
 };
-use crate::util::volatile::Volatile;
 
 pub static IOAPIC: OnceCell<IOAPIC> = OnceCell::uninit();
 
@@ -19,13 +18,13 @@ pub struct IOAPIC {
 
 impl IOAPIC {
     pub fn read_register(&self, register_offset: u32) -> u32 {
-        let register_address = VirtualAddress::new(self.address.inner + register_offset as u64);
-        Volatile::new(register_address.inner).read() as u32
+        let register_address = VirtualAddress::new(self.address.inner + (register_offset as u64));
+        unsafe { core::ptr::read_volatile(register_address.inner as *const u32) }
     }
 
     pub fn write_to_register(&self, register_offset: u32, value: u32) {
-        let register_address = VirtualAddress::new(self.address.inner + register_offset as u64);
-        Volatile::new(register_address.inner).write(value as u64)
+        let register_address = VirtualAddress::new(self.address.inner + (register_offset as u64));
+        unsafe { core::ptr::write_volatile(register_address.inner as *mut u32, value) }
     }
 }
 

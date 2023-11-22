@@ -36,38 +36,38 @@ impl PageTableEntry {
     }
 
     // flag checking convience methods
-    pub fn is_page_present(&self) {
-        self.inner & PageTableEntryFlags::PRESENT;
+    pub fn is_page_present(&self) -> bool {
+        (self.inner & PageTableEntryFlags::PRESENT) == PageTableEntryFlags::PRESENT
     }
 
-    pub fn allows_write_access(&self) {
-        self.inner & PageTableEntryFlags::WRITE_ACCESS;
+    pub fn allows_write_access(&self) -> bool {
+        (self.inner & PageTableEntryFlags::WRITE_ACCESS) == PageTableEntryFlags::WRITE_ACCESS
     }
-    pub fn allows_user_access(&self) {
-        self.inner & PageTableEntryFlags::USER_ACCESS;
+    pub fn allows_user_access(&self) -> bool {
+        (self.inner & PageTableEntryFlags::USER_ACCESS) == PageTableEntryFlags::USER_ACCESS
     }
-    pub fn can_write_through(&self) {
-        self.inner & PageTableEntryFlags::WRITE_THROUGH;
-    }
-
-    pub fn cache_disabled(&self) {
-        self.inner & PageTableEntryFlags::CACHE_DISABLED;
+    pub fn can_write_through(&self) -> bool {
+        (self.inner & PageTableEntryFlags::WRITE_THROUGH) == PageTableEntryFlags::WRITE_THROUGH
     }
 
-    pub fn has_been_accessed(&self) {
-        self.inner & PageTableEntryFlags::ACCESSED;
+    pub fn cache_disabled(&self) -> bool {
+        (self.inner & PageTableEntryFlags::CACHE_DISABLED) == PageTableEntryFlags::CACHE_DISABLED
     }
 
-    pub fn is_dirty(&self) {
-        self.inner & PageTableEntryFlags::DIRTY;
+    pub fn has_been_accessed(&self) -> bool {
+        (self.inner & PageTableEntryFlags::ACCESSED) == PageTableEntryFlags::ACCESSED
     }
 
-    pub fn is_large_page(&self) {
-        self.inner & PageTableEntryFlags::LARGE_PAGE_SIZE;
+    pub fn is_dirty(&self) -> bool {
+        (self.inner & PageTableEntryFlags::DIRTY) == PageTableEntryFlags::DIRTY
     }
 
-    pub fn is_global(&self) {
-        self.inner & PageTableEntryFlags::GLOBAL;
+    pub fn is_large_page(&self) -> bool {
+        (self.inner & PageTableEntryFlags::LARGE_PAGE_SIZE) == PageTableEntryFlags::LARGE_PAGE_SIZE
+    }
+
+    pub fn is_global(&self) -> bool {
+        (self.inner & PageTableEntryFlags::GLOBAL) == PageTableEntryFlags::GLOBAL
     }
 }
 

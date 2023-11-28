@@ -5,6 +5,10 @@ use crate::mmu::{
     PhysicalAddress,
     VirtualAddress,
 };
+use crate::util::bits::{
+    is_bit_set,
+    set_bit,
+};
 
 const PAGE_TABLE_ENTRIES: usize = 512;
 
@@ -19,6 +23,7 @@ impl PageTableEntryFlags {
     const WRITE_THROUGH: u64 = 1 << 3;
     const CACHE_DISABLED: u64 = 1 << 4;
     const ACCESSED: u64 = 1 << 5;
+    // Shoutout to the Black-eyed Peas
     const DIRTY: u64 = 1 << 6;
     const LARGE_PAGE_SIZE: u64 = 1 << 7;
     const GLOBAL: u64 = 1 << 8;
@@ -37,37 +42,37 @@ impl PageTableEntry {
 
     // flag checking convience methods
     pub fn is_page_present(&self) -> bool {
-        (self.inner & PageTableEntryFlags::PRESENT) == PageTableEntryFlags::PRESENT
+        is_bit_set(self.inner, PageTableEntryFlags::PRESENT)
     }
 
     pub fn allows_write_access(&self) -> bool {
-        (self.inner & PageTableEntryFlags::WRITE_ACCESS) == PageTableEntryFlags::WRITE_ACCESS
+        is_bit_set(self.inner, PageTableEntryFlags::WRITE_ACCESS)
     }
     pub fn allows_user_access(&self) -> bool {
-        (self.inner & PageTableEntryFlags::USER_ACCESS) == PageTableEntryFlags::USER_ACCESS
+        is_bit_set(self.inner, PageTableEntryFlags::USER_ACCESS)
     }
     pub fn can_write_through(&self) -> bool {
-        (self.inner & PageTableEntryFlags::WRITE_THROUGH) == PageTableEntryFlags::WRITE_THROUGH
+        is_bit_set(self.inner, PageTableEntryFlags::WRITE_THROUGH)
     }
 
     pub fn cache_disabled(&self) -> bool {
-        (self.inner & PageTableEntryFlags::CACHE_DISABLED) == PageTableEntryFlags::CACHE_DISABLED
+        is_bit_set(self.inner, PageTableEntryFlags::CACHE_DISABLED)
     }
 
     pub fn has_been_accessed(&self) -> bool {
-        (self.inner & PageTableEntryFlags::ACCESSED) == PageTableEntryFlags::ACCESSED
+        is_bit_set(self.inner, PageTableEntryFlags::ACCESSED)
     }
 
     pub fn is_dirty(&self) -> bool {
-        (self.inner & PageTableEntryFlags::DIRTY) == PageTableEntryFlags::DIRTY
+        is_bit_set(self.inner, PageTableEntryFlags::DIRTY)
     }
 
     pub fn is_large_page(&self) -> bool {
-        (self.inner & PageTableEntryFlags::LARGE_PAGE_SIZE) == PageTableEntryFlags::LARGE_PAGE_SIZE
+        is_bit_set(self.inner, PageTableEntryFlags::LARGE_PAGE_SIZE)
     }
 
     pub fn is_global(&self) -> bool {
-        (self.inner & PageTableEntryFlags::GLOBAL) == PageTableEntryFlags::GLOBAL
+        is_bit_set(self.inner, PageTableEntryFlags::GLOBAL)
     }
 }
 
@@ -80,10 +85,10 @@ pub struct PageMapLevel4 {
 impl PageMapLevel4 {
     // We load the pml4 that's mapped by the bootloader currently, so we should just load it from
     // the address in the CR3 register
-    pub unsafe fn get_active_pml4(pml4_virtual_address: VirtualAddress) -> &'static mut Self {
-        let raw: u64;
-        asm!("mov {}, cr3", out(reg) raw, options(nomem, nostack, preserves_flags));
-        let table_ptr = pml4_virtual_address.inner as *mut PageMapLevel4;
+    pub unsafe fn get_active_pml4() -> &'static mut Self {
+        let raw_pml4_address: u64;
+        asm!("mov {}, cr3", out(reg) raw_pml4_address, options(nomem, nostack, preserves_flags));
+        let table_ptr = raw_pml4_address as *mut PageMapLevel4;
         &mut *table_ptr
     }
 }

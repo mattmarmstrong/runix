@@ -4,10 +4,8 @@ use core::ptr::{
 };
 use core::slice::from_raw_parts;
 
-use crate::mmu::{
-    phys_to_virt_address,
-    PhysicalAddress,
-};
+use crate::mmu::phys_to_virt_address;
+use crate::mmu::physical_address::PhysicalAddress;
 
 #[repr(transparent)]
 pub struct SDTSignature {

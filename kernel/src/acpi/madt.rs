@@ -5,11 +5,9 @@ use crate::acpi::sdt::{
     SDTSignature,
     SystemDescriptorTable,
 };
-use crate::mmu::{
-    phys_to_virt_address,
-    PhysicalAddress,
-    VirtualAddress,
-};
+use crate::mmu::phys_to_virt_address;
+use crate::mmu::physical_address::PhysicalAddress;
+use crate::mmu::virtual_address::VirtualAddress;
 
 // I'm cheating. The machine being emulated by the virtualization software I'm using for
 // development supports ACPI Revision 2.0. The structure of this data reflects that

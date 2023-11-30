@@ -6,10 +6,8 @@ use crate::acpi::sdt::{
     SDTSignature,
     SystemDescriptorTable,
 };
-use crate::mmu::{
-    phys_to_virt_address,
-    PhysicalAddress,
-};
+use crate::mmu::phys_to_virt_address;
+use crate::mmu::physical_address::PhysicalAddress;
 
 #[derive(Debug)]
 #[repr(C, packed)]

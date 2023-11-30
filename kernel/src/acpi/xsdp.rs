@@ -4,10 +4,8 @@ use core::ptr::{
 };
 use core::str;
 
-use crate::mmu::{
-    phys_to_virt_address,
-    PhysicalAddress,
-};
+use crate::mmu::phys_to_virt_address;
+use crate::mmu::physical_address::PhysicalAddress;
 
 pub const XSDP_SIGNATURE: [u8; 8] = *b"RSD PTR ";
 

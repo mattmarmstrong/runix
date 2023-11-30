@@ -11,7 +11,7 @@ use crate::interrupts::idt::{
     GateOptions,
     InterruptDescriptorTable,
 };
-use crate::mmu::VirtualAddress;
+use crate::mmu::virtual_address::VirtualAddress;
 use crate::segmentation::tss::*;
 
 #[derive(Debug, Clone, Copy)]

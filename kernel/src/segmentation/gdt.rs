@@ -1,7 +1,7 @@
 use core::arch::asm;
 use core::mem::size_of;
 
-use crate::mmu::VirtualAddress;
+use crate::mmu::virtual_address::VirtualAddress;
 use crate::segmentation::tss::TaskStateSegment;
 
 #[derive(Debug, Clone, Copy)]

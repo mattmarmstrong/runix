@@ -1,6 +1,6 @@
 use core::mem::size_of;
 
-use crate::mmu::VirtualAddress;
+use crate::mmu::virtual_address::VirtualAddress;
 
 const STACK_SIZE: usize = 4096 * 5;
 

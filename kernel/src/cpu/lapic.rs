@@ -9,11 +9,9 @@ use crate::cpu::pit::{
 };
 use crate::cpu::CPU_INFO;
 use crate::interrupts::InterruptVector;
-use crate::mmu::{
-    phys_to_virt_address,
-    PhysicalAddress,
-    VirtualAddress,
-};
+use crate::mmu::phys_to_virt_address;
+use crate::mmu::physical_address::PhysicalAddress;
+use crate::mmu::virtual_address::VirtualAddress;
 
 // TODO: Check if there is an MSR, Read the MSR value
 const IA32_APIC_BASE_MSR: u64 = 0x1B;

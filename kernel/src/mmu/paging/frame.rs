@@ -1,4 +1,8 @@
-use crate::mmu::PhysicalAddress;
+use super::page_table::PageTable;
+use crate::mmu::{
+    virtual_address::VirtualAddress,
+    PhysicalAddress,
+};
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
@@ -15,5 +19,10 @@ impl PhysicalFrame {
             size: page_size,
             offset: aligned_address,
         }
+    }
+
+    pub fn frame_to_page_table(&self, offset: VirtualAddress) -> PageTable {
+        let raw_virtual_address = offset.inner + self.offset.inner;
+        unsafe { *(raw_virtual_address as *const PageTable) }
     }
 }

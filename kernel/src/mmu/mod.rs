@@ -1,8 +1,6 @@
 // memory management software
-
 pub mod paging;
 pub mod physical_address;
-pub mod tlb;
 pub mod virtual_address;
 
 use crate::mmu::physical_address::PhysicalAddress;

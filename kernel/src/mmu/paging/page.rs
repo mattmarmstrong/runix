@@ -1,3 +1,4 @@
+use crate::mmu::paging::asm::flush;
 use crate::mmu::VirtualAddress;
 
 #[derive(Debug, Clone, Copy)]
@@ -24,5 +25,9 @@ impl Page {
             size: page_size,
             offset: aligned_address,
         }
+    }
+
+    pub fn flush_from_tlb(&self) {
+        unsafe { flush(self.offset.inner) }
     }
 }

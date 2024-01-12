@@ -1,3 +1,4 @@
+pub mod asm;
 pub mod frame;
 pub mod frame_allocator;
 pub mod page;

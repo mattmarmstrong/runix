@@ -1,9 +1,6 @@
 use crate::mmu::paging::frame::PhysicalFrame;
 use crate::mmu::paging::page::PageSize;
-use crate::mmu::{
-    PhysicalAddress,
-    VirtualAddress,
-};
+use crate::mmu::PhysicalAddress;
 use crate::util::bits::{
     is_bit_set,
     set_bit,
@@ -61,7 +58,13 @@ impl PageTableEntry {
         PhysicalAddress::new(self.inner & PHYSICAL_ADDRESS_MASK)
     }
 
-    pub fn get_physical_frame(&self) -> PhysicalFrame {
-        PhysicalFrame::from_address_aligned(self.get_physical_address(), PageSize::FOUR_KIB)
+    pub fn get_physical_frame(&self) -> Option<PhysicalFrame> {
+        match self.is_flag_set(PageTableEntryFlags::PRESENT) {
+            true => Some(PhysicalFrame::from_address_aligned(
+                self.get_physical_address(),
+                PageSize::FOUR_KIB,
+            )),
+            false => None,
+        }
     }
 }

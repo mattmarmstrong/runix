@@ -1,3 +1,8 @@
+use core::u64;
+
+use super::KERNEL_BASE_ADDRESS;
+use crate::impl_alignment_functions;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct VirtualAddress {
@@ -17,11 +22,25 @@ impl core::ops::Add for VirtualAddress {
     }
 }
 
+impl core::ops::Add<u64> for VirtualAddress {
+    type Output = Self;
+    fn add(self, rhs: u64) -> Self::Output {
+        VirtualAddress::new(self.inner + rhs)
+    }
+}
+
 impl core::ops::Sub for VirtualAddress {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
         let raw_sub_result = self.inner + rhs.inner;
         VirtualAddress::new(raw_sub_result)
+    }
+}
+
+impl core::ops::Sub<u64> for VirtualAddress {
+    type Output = Self;
+    fn sub(self, rhs: u64) -> Self::Output {
+        VirtualAddress::new(self.inner - rhs)
     }
 }
 
@@ -54,12 +73,19 @@ impl VirtualAddress {
         }
     }
 
-    #[inline]
-    pub fn get_page_offset(self) -> u16 {
-        (self.inner & 0x0FFF) as u16
+    pub fn with_offset(address: u64, offset: u64) -> Self {
+        VirtualAddress::new(address + offset)
     }
 
-    // we have to use a usize to index into the page table, so we might as well do the necessary conversions here
+    pub fn with_kernel_base_offset(address: u64) -> Self {
+        VirtualAddress::with_offset(address, KERNEL_BASE_ADDRESS)
+    }
+
+    #[inline]
+    pub fn get_page_offset(self) -> u64 {
+        ((self.inner & 0x0FFF) as u16) as u64
+    }
+
     #[inline]
     pub fn get_pt_index(self) -> usize {
         ((self.inner >> 12) & 0x01FF) as usize
@@ -80,3 +106,5 @@ impl VirtualAddress {
         ((self.inner >> 39) & 0x01FF) as usize
     }
 }
+
+impl_alignment_functions!(VirtualAddress);

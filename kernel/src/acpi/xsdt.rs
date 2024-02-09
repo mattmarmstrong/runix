@@ -6,8 +6,7 @@ use crate::acpi::sdt::{
     SDTSignature,
     SystemDescriptorTable,
 };
-use crate::mmu::phys_to_virt_address;
-use crate::mmu::physical_address::PhysicalAddress;
+use crate::mmu::virtual_address::VirtualAddress;
 
 #[derive(Debug)]
 #[repr(C, packed)]
@@ -22,8 +21,8 @@ impl SystemDescriptorTable for XSDT {
         let size_of_sdt_header = size_of::<SDTHeader>() as u64;
         let sdt_address_table_size = header.length as u64 - size_of_sdt_header;
         let sdt_address_table_length = (sdt_address_table_size / 8) as usize;
-        let sdt_address_table_phys_addr = PhysicalAddress::new(raw_xsdt_physical_address + size_of_sdt_header);
-        let sdt_address_table_virt_addr = phys_to_virt_address(sdt_address_table_phys_addr);
+        let sdt_address_table_virt_addr =
+            VirtualAddress::with_kernel_base_offset(raw_xsdt_physical_address + size_of_sdt_header);
         let sdt_address_table = from_raw_parts(sdt_address_table_virt_addr.inner as *const _, sdt_address_table_length);
         XSDT {
             header,

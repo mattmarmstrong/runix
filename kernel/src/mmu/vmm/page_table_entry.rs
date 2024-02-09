@@ -1,5 +1,4 @@
-use crate::mmu::paging::frame::PhysicalFrame;
-use crate::mmu::paging::page::PageSize;
+use crate::mmu::vmm::frame::PhysicalFrame;
 use crate::mmu::PhysicalAddress;
 use crate::util::bits::{
     is_bit_set,
@@ -32,39 +31,58 @@ pub struct PageTableEntry {
 }
 
 impl PageTableEntry {
-    pub fn new(flags: u64) -> Self {
-        PageTableEntry { inner: flags }
+    pub fn new(flags: u64, physical_address: PhysicalAddress) -> Self {
+        PageTableEntry {
+            inner: (flags & physical_address.inner),
+        }
     }
 
-    // this is kind of dumb lmao
+    #[inline]
+    pub fn new_unused() -> Self {
+        PageTableEntry { inner: 0 }
+    }
+
+    #[inline]
+    pub fn is_unused(&self) -> bool {
+        self.inner == 0
+    }
+
+    pub fn set_unused(&mut self) {
+        self.inner = 0
+    }
+
+    #[inline]
+    pub fn flags(&self) -> u64 {
+        self.inner & 0xFF
+    }
+
+    #[inline]
     pub fn is_flag_set(&self, entry_flag: u64) -> bool {
         is_bit_set(self.inner, entry_flag)
     }
-
+    #[inline]
     pub fn set_flag(&mut self, entry_flag: u64) {
         self.inner = set_bit(self.inner, entry_flag)
     }
 
-    // Default bit-setters
-    pub fn set_present(&mut self) {
-        self.inner = set_bit(self.inner, PageTableEntryFlags::PRESENT)
+    #[inline]
+    pub fn set_flags(&mut self, entry_flags: u64) {
+        self.inner |= entry_flags
     }
 
-    pub fn set_write_access(&mut self) {
-        self.inner = set_bit(self.inner, PageTableEntryFlags::WRITE_ACCESS)
-    }
-
+    #[inline]
     fn get_physical_address(&self) -> PhysicalAddress {
         PhysicalAddress::new(self.inner & PHYSICAL_ADDRESS_MASK)
     }
 
     pub fn get_physical_frame(&self) -> Option<PhysicalFrame> {
         match self.is_flag_set(PageTableEntryFlags::PRESENT) {
-            true => Some(PhysicalFrame::from_address_aligned(
-                self.get_physical_address(),
-                PageSize::FOUR_KIB,
-            )),
+            true => Some(PhysicalFrame::from_address_aligned(self.get_physical_address())),
             false => None,
         }
+    }
+
+    pub fn set_physical_frame_address(&mut self, physical_frame: PhysicalFrame) {
+        self.inner &= physical_frame.start_address()
     }
 }

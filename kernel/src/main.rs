@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 
-use core::arch::asm;
 use core::panic::PanicInfo;
 
 use bootloader_api::{
@@ -25,9 +24,7 @@ const BOOTLOADER_CONFIG: BootloaderConfig = {
 entry_point!(kmain, config = &BOOTLOADER_CONFIG);
 
 fn kmain(boot_info: &'static mut BootInfo) -> ! {
-    let rsdp_addr = boot_info.rsdp_addr.into_option().unwrap();
-    kernel::framebuffer::init_kernel_logging(boot_info);
-    kernel::acpi::read_acpi_tables(rsdp_addr);
+    kernel::boot::init(boot_info);
     kernel::segmentation::init_gdt();
     kernel::interrupts::init_idt();
     kernel::cpu::init_cpu_intrinsics();

@@ -4,8 +4,8 @@ use core::ptr::{
 };
 use core::slice::from_raw_parts;
 
-use crate::mmu::phys_to_virt_address;
-use crate::mmu::physical_address::PhysicalAddress;
+use crate::mmu::virtual_address::VirtualAddress;
+use crate::mmu::KERNEL_BASE_ADDRESS;
 
 #[repr(transparent)]
 pub struct SDTSignature {
@@ -78,7 +78,7 @@ impl SDTHeader {
     }
 
     pub fn valid_checksum(&self, raw_sdt_start_address: u64) -> bool {
-        let virtual_start_address = phys_to_virt_address(PhysicalAddress::new(raw_sdt_start_address));
+        let virtual_start_address = VirtualAddress::with_kernel_base_offset(raw_sdt_start_address);
         let raw_sdt_byte_slice =
             unsafe { from_raw_parts(virtual_start_address.inner as *const _, self.length as usize) };
         let checksum = raw_sdt_byte_slice
@@ -92,8 +92,7 @@ impl SDTHeader {
         raw_sdt_physical_address: u64,
         sdt_signature: &SDTSignature,
     ) -> Result<Self, SDTHeaderError> {
-        let sdt_physical_address = PhysicalAddress::new(raw_sdt_physical_address);
-        let sdt_virtual_address = phys_to_virt_address(sdt_physical_address);
+        let sdt_virtual_address = VirtualAddress::with_kernel_base_offset(raw_sdt_physical_address);
         let raw_sdt_header = sdt_virtual_address.inner as *const Self;
         let sdt_header = *raw_sdt_header;
         // TODO: compute and validate the checksum as well

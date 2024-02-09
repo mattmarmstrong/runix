@@ -6,9 +6,9 @@ use bootloader_x86_64_common::logger::LockedLogger;
 use conquer_once::spin::OnceCell;
 
 pub mod acpi;
+pub mod boot;
 pub mod cpu;
 pub mod device;
-pub mod framebuffer;
 pub mod interrupts;
 pub mod mmu;
 pub mod segmentation;

@@ -1,9 +1,5 @@
 use conquer_once::spin::OnceCell;
 
-use crate::acpi::ACPI_TABLES;
-use crate::cpu::CPU_INFO;
-use crate::mmu::phys_to_virt_address;
-use crate::mmu::physical_address::PhysicalAddress;
 use crate::mmu::virtual_address::VirtualAddress;
 
 pub static IOAPIC: OnceCell<IOAPIC> = OnceCell::uninit();
@@ -16,12 +12,12 @@ pub struct IOAPIC {
 
 impl IOAPIC {
     pub fn read_register(&self, register_offset: u32) -> u32 {
-        let register_address = VirtualAddress::new(self.address.inner + (register_offset as u64));
+        let register_address = VirtualAddress::with_offset(self.address.inner, register_offset as u64);
         unsafe { core::ptr::read_volatile(register_address.inner as *const u32) }
     }
 
     pub fn write_to_register(&self, register_offset: u32, value: u32) {
-        let register_address = VirtualAddress::new(self.address.inner + (register_offset as u64));
+        let register_address = VirtualAddress::with_offset(self.address.inner, register_offset as u64);
         unsafe { core::ptr::write_volatile(register_address.inner as *mut u32, value) }
     }
 }

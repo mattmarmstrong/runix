@@ -4,8 +4,8 @@ use core::ptr::{
 };
 use core::str;
 
-use crate::mmu::phys_to_virt_address;
-use crate::mmu::physical_address::PhysicalAddress;
+use crate::mmu::virtual_address::VirtualAddress;
+use crate::mmu::KERNEL_BASE_ADDRESS;
 
 pub const XSDP_SIGNATURE: [u8; 8] = *b"RSD PTR ";
 
@@ -83,8 +83,7 @@ impl XSDP {
     }
 
     unsafe fn try_read_from_raw_address(raw_xsdp_physical_address: u64) -> Result<XSDP, XSDPError> {
-        let rsdp_physical_address = PhysicalAddress::new(raw_xsdp_physical_address);
-        let rsdp_virtual_address = phys_to_virt_address(rsdp_physical_address);
+        let rsdp_virtual_address = VirtualAddress::with_kernel_base_offset(raw_xsdp_physical_address);
         let xsdp_ref = rsdp_virtual_address.inner as *const XSDP;
         let xsdp: XSDP = *xsdp_ref;
         match xsdp.valid_signature() {

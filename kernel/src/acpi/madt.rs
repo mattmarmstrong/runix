@@ -5,9 +5,8 @@ use crate::acpi::sdt::{
     SDTSignature,
     SystemDescriptorTable,
 };
-use crate::mmu::phys_to_virt_address;
-use crate::mmu::physical_address::PhysicalAddress;
 use crate::mmu::virtual_address::VirtualAddress;
+use crate::mmu::KERNEL_BASE_ADDRESS;
 
 // I'm cheating. The machine being emulated by the virtualization software I'm using for
 // development supports ACPI Revision 2.0. The structure of this data reflects that
@@ -84,8 +83,8 @@ impl APICHeaders {
     unsafe fn read_from_raw_address(raw_madt_physical_address: u64) -> Self {
         let sdt_header = SDTHeader::try_read_from_phys_addr(raw_madt_physical_address, &SDTSignature::MADT).unwrap();
         let size_of_sdt_header = size_of::<SDTHeader>() as u64;
-        let madt_header_phys_addr = PhysicalAddress::new(raw_madt_physical_address + size_of_sdt_header);
-        let madt_header_virt_addr = phys_to_virt_address(madt_header_phys_addr);
+        let madt_header_virt_addr =
+            VirtualAddress::with_kernel_base_offset(raw_madt_physical_address + size_of_sdt_header);
         let madt_header_ref = madt_header_virt_addr.inner as *const MADTHeader;
         let madt_header = *madt_header_ref;
         APICHeaders {
@@ -107,7 +106,7 @@ pub struct APICStructures {
 impl APICStructures {
     pub unsafe fn read_apic_structures(raw_madt_physical_address: u64) -> APICStructures {
         let apic_headers = APICHeaders::read_from_raw_address(raw_madt_physical_address);
-        let madt_virtual_address = phys_to_virt_address(PhysicalAddress::new(raw_madt_physical_address));
+        let madt_virtual_address = VirtualAddress::with_kernel_base_offset(raw_madt_physical_address);
 
         // Initial structure header. Found immediately after the the MADTHeader
         let mut apic_structure_header_address =

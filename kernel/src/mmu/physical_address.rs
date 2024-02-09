@@ -1,3 +1,5 @@
+use crate::impl_alignment_functions;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct PhysicalAddress {
@@ -17,11 +19,25 @@ impl core::ops::Add for PhysicalAddress {
     }
 }
 
+impl core::ops::Add<u64> for PhysicalAddress {
+    type Output = Self;
+    fn add(self, rhs: u64) -> Self::Output {
+        PhysicalAddress::new(self.inner + rhs)
+    }
+}
+
 impl core::ops::Sub for PhysicalAddress {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
         let raw_sub_result = self.inner + rhs.inner;
         PhysicalAddress::new(raw_sub_result)
+    }
+}
+
+impl core::ops::Sub<u64> for PhysicalAddress {
+    type Output = Self;
+    fn sub(self, rhs: u64) -> Self::Output {
+        PhysicalAddress::new(self.inner - rhs)
     }
 }
 
@@ -50,3 +66,5 @@ impl PhysicalAddress {
         }
     }
 }
+
+impl_alignment_functions!(PhysicalAddress);

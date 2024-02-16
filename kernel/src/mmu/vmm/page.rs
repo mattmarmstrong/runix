@@ -1,27 +1,18 @@
 use crate::mmu::vmm::asm::flush;
+use crate::mmu::vmm::Size;
 use crate::mmu::VirtualAddress;
-
-#[derive(Debug, Clone, Copy)]
-#[non_exhaustive]
-pub enum VirtualPageSize {}
-
-impl VirtualPageSize {
-    pub const FOUR_KIB: u64 = 1 << 12;
-    pub const TWO_MB: u64 = (1 << 20) * 2;
-    pub const ONE_GB: u64 = 1 << 30;
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct VirtualPage {
-    offset: VirtualAddress,
+    pub offset: VirtualAddress,
 }
 
 impl core::ops::Add<u64> for VirtualPage {
     type Output = Self;
 
     fn add(self, rhs: u64) -> Self::Output {
-        VirtualPage::from_address_aligned(self.offset + (rhs * VirtualPageSize::FOUR_KIB))
+        VirtualPage::from_address_aligned(self.offset + (rhs * Size::FOUR_KIB))
     }
 }
 
@@ -33,7 +24,7 @@ impl core::ops::AddAssign<u64> for VirtualPage {
 
 impl VirtualPage {
     pub fn from_address_aligned(virtual_address: VirtualAddress) -> Self {
-        let aligned_address = virtual_address.align_down(VirtualPageSize::FOUR_KIB);
+        let aligned_address = virtual_address.align_down(Size::FOUR_KIB);
         VirtualPage {
             offset: aligned_address,
         }
@@ -61,5 +52,11 @@ impl Iterator for VirtualPageRange {
             }
             false => None,
         }
+    }
+}
+
+impl VirtualPageRange {
+    pub fn range_inclusive(start: VirtualPage, end: VirtualPage) -> Self {
+        VirtualPageRange { current: start, end }
     }
 }

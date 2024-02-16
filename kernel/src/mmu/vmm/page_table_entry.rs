@@ -12,16 +12,16 @@ const PHYSICAL_ADDRESS_MASK: u64 = 0x000F_FFFF_FFFF_F000;
 pub enum PageTableEntryFlags {}
 
 impl PageTableEntryFlags {
-    const PRESENT: u64 = 1;
-    const WRITE_ACCESS: u64 = 1 << 1;
-    const USER_ACCESS: u64 = 1 << 2;
-    const WRITE_THROUGH: u64 = 1 << 3;
-    const CACHE_DISABLED: u64 = 1 << 4;
-    const ACCESSED: u64 = 1 << 5;
+    pub const PRESENT: u64 = 1;
+    pub const WRITE_ACCESS: u64 = 1 << 1;
+    pub const USER_ACCESS: u64 = 1 << 2;
+    pub const WRITE_THROUGH: u64 = 1 << 3;
+    pub const CACHE_DISABLED: u64 = 1 << 4;
+    pub const ACCESSED: u64 = 1 << 5;
     // Shoutout to the Black-eyed Peas
-    const DIRTY: u64 = 1 << 6;
-    const LARGE_PAGE_SIZE: u64 = 1 << 7;
-    const GLOBAL: u64 = 1 << 8;
+    pub const DIRTY: u64 = 1 << 6;
+    pub const LARGE_PAGE_SIZE: u64 = 1 << 7;
+    pub const GLOBAL: u64 = 1 << 8;
 }
 
 #[derive(Debug, Clone, Copy)]

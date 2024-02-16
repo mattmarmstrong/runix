@@ -1,7 +1,7 @@
 use core::u64;
 
-use super::KERNEL_BASE_ADDRESS;
 use crate::impl_alignment_functions;
+use crate::mmu::KERNEL_BASE_ADDRESS;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]

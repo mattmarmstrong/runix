@@ -1,8 +1,10 @@
 use crate::mmu::alloc::FrameAllocator;
 use crate::mmu::physical_address::PhysicalAddress;
 use crate::mmu::virtual_address::VirtualAddress;
+use crate::mmu::vmm::asm::flush;
 use crate::mmu::vmm::asm::get_raw_pml4_ptr;
 use crate::mmu::vmm::frame::PhysicalFrame;
+use crate::mmu::vmm::page::VirtualPage;
 use crate::mmu::vmm::page_table_entry::PageTableEntry;
 
 #[derive(Debug, Clone, Copy)]
@@ -43,15 +45,13 @@ impl PageTable {
         }
     }
 
-    // like try_get_next_page_table, except if the corresponding page table doesn't exist, it
-    // creates it. Returns a flag that lets the caller know if the table was created or just
-    // fetched from the existing entry
     pub fn get_next_page_table(
+        &self,
         offset: VirtualAddress,
         mut entry: PageTableEntry,
         flags: u64,
-        frame_allocator: impl FrameAllocator,
-    ) -> (Self, bool) {
+        frame_allocator: &mut impl FrameAllocator,
+    ) -> Self {
         let created: bool;
         let physical_frame: PhysicalFrame;
         match entry.is_unused() {
@@ -67,13 +67,10 @@ impl PageTable {
             }
         }
         let mut page_table = physical_frame.frame_to_page_table(offset);
-        match created {
-            true => {
-                page_table.set_empty();
-                (page_table, created)
-            }
-            false => (page_table, created),
+        if created {
+            page_table.set_empty();
         }
+        page_table
     }
 }
 
@@ -121,6 +118,38 @@ impl MappedPageTable {
                 }
             }
             None => None,
+        }
+    }
+
+    pub fn map_to(
+        &mut self,
+        page: VirtualPage,
+        frame: PhysicalFrame,
+        entry_flags: u64,
+        table_flags: u64,
+        should_flush_page: bool,
+        frame_allocator: &mut impl FrameAllocator,
+    ) {
+        let virtual_address = page.offset;
+        let pml4 = &mut self.page_table;
+        let pml4_entry = pml4.inner[virtual_address.get_pml4_index()];
+        let pdpt = pml4.get_next_page_table(self.offset, pml4_entry, table_flags, frame_allocator);
+        let pdpt_entry = pdpt.inner[virtual_address.get_pdpt_index()];
+        let pd = pdpt.get_next_page_table(self.offset, pdpt_entry, table_flags, frame_allocator);
+        let pd_entry = pd.inner[virtual_address.get_pd_index()];
+        let pt = pd.get_next_page_table(self.offset, pd_entry, table_flags, frame_allocator);
+        let mut pt_entry = pt.inner[virtual_address.get_pt_index()];
+        match pt_entry.is_unused() {
+            true => {
+                pt_entry.set_physical_frame_address(frame);
+                pt_entry.set_flags(entry_flags);
+                if should_flush_page {
+                    unsafe {
+                        flush(virtual_address.inner);
+                    }
+                }
+            }
+            false => panic!("Page is already mapped!"),
         }
     }
 }

@@ -1,7 +1,7 @@
 use core::arch::asm;
 use core::mem::size_of;
 
-use crate::mmu::virtual_address::VirtualAddress;
+use crate::mmu::address::VirtualAddress;
 use crate::segmentation::tss::TaskStateSegment;
 
 #[derive(Debug, Clone, Copy)]
@@ -35,7 +35,7 @@ impl GlobalDescriptorTable {
 
     pub fn address(&self) -> GdtPointer {
         let limit = (self.descriptor_table.len() * size_of::<SegmentDescriptor>() - 1) as u16;
-        let base = VirtualAddress::new(self.descriptor_table.as_ptr() as u64);
+        let base = VirtualAddress::new(self.descriptor_table.as_ptr() as usize);
         GdtPointer { limit, base }
     }
 

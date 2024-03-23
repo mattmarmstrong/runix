@@ -5,8 +5,7 @@ use crate::acpi::sdt::{
     SDTSignature,
     SystemDescriptorTable,
 };
-use crate::mmu::virtual_address::VirtualAddress;
-use crate::mmu::KERNEL_BASE_ADDRESS;
+use crate::mmu::address::VirtualAddress;
 
 // I'm cheating. The machine being emulated by the virtualization software I'm using for
 // development supports ACPI Revision 2.0. The structure of this data reflects that
@@ -80,9 +79,9 @@ pub struct APICHeaders {
 }
 
 impl APICHeaders {
-    unsafe fn read_from_raw_address(raw_madt_physical_address: u64) -> Self {
+    unsafe fn read_from_raw_address(raw_madt_physical_address: usize) -> Self {
         let sdt_header = SDTHeader::try_read_from_phys_addr(raw_madt_physical_address, &SDTSignature::MADT).unwrap();
-        let size_of_sdt_header = size_of::<SDTHeader>() as u64;
+        let size_of_sdt_header = size_of::<SDTHeader>();
         let madt_header_virt_addr =
             VirtualAddress::with_kernel_base_offset(raw_madt_physical_address + size_of_sdt_header);
         let madt_header_ref = madt_header_virt_addr.inner as *const MADTHeader;
@@ -104,13 +103,13 @@ pub struct APICStructures {
 }
 
 impl APICStructures {
-    pub unsafe fn read_apic_structures(raw_madt_physical_address: u64) -> APICStructures {
+    pub unsafe fn read_apic_structures(raw_madt_physical_address: usize) -> APICStructures {
         let apic_headers = APICHeaders::read_from_raw_address(raw_madt_physical_address);
         let madt_virtual_address = VirtualAddress::with_kernel_base_offset(raw_madt_physical_address);
 
         // Initial structure header. Found immediately after the the MADTHeader
         let mut apic_structure_header_address =
-            VirtualAddress::new(madt_virtual_address.inner + (size_of::<APICHeaders>() as u64));
+            VirtualAddress::new(madt_virtual_address.inner + (size_of::<APICHeaders>()));
 
         // Struct initalization. I choose these values for no real reason.
         // TODO: NEED TO ALLOCATE HEAP SPACE FOR THESE AND USE A VEC<>
@@ -127,7 +126,7 @@ impl APICStructures {
         let mut local_apic_address_override: Option<LocalAPICAddressOverride> = None;
 
         // ITERATION BOUNDS
-        let raw_table_end_address = madt_virtual_address.inner + apic_headers.sdt_header.length as u64;
+        let raw_table_end_address = madt_virtual_address.inner + apic_headers.sdt_header.length as usize;
         let table_end_virt_address = VirtualAddress::new(raw_table_end_address);
         // ITERATION BOUNDS
 
@@ -160,7 +159,7 @@ impl APICStructures {
                 _ => {} // do nothing, we'll skip the rest for now
             }
 
-            apic_structure_header_address.inner += apic_structure_header.length as u64;
+            apic_structure_header_address.inner += apic_structure_header.length as usize;
         }
 
         APICStructures {
@@ -180,7 +179,7 @@ pub struct MADT {
 }
 
 impl SystemDescriptorTable for MADT {
-    unsafe fn read_from_raw_address(raw_madt_physical_address: u64) -> Self {
+    unsafe fn read_from_raw_address(raw_madt_physical_address: usize) -> Self {
         let apic_headers = APICHeaders::read_from_raw_address(raw_madt_physical_address);
         let apic_structures = APICStructures::read_apic_structures(raw_madt_physical_address);
         MADT {

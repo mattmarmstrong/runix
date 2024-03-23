@@ -1,6 +1,7 @@
 #![no_std]
 #![feature(naked_functions)]
 #![feature(asm_const)]
+#![feature(allocator_api)]
 
 use bootloader_x86_64_common::logger::LockedLogger;
 use conquer_once::spin::OnceCell;

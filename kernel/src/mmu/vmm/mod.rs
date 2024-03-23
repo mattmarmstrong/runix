@@ -9,7 +9,7 @@ pub mod page_table_entry;
 pub enum Size {}
 
 impl Size {
-    pub const FOUR_KIB: u64 = 1 << 12;
-    pub const TWO_MB: u64 = (1 << 20) * 2;
-    pub const ONE_GB: u64 = 1 << 30;
+    pub const FOUR_KIB: usize = 1 << 12;
+    pub const TWO_MB: usize = (1 << 20) * 2;
+    pub const ONE_GB: usize = 1 << 30;
 }

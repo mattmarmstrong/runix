@@ -4,8 +4,7 @@ use core::ptr::{
 };
 use core::slice::from_raw_parts;
 
-use crate::mmu::virtual_address::VirtualAddress;
-use crate::mmu::KERNEL_BASE_ADDRESS;
+use crate::mmu::address::VirtualAddress;
 
 #[repr(transparent)]
 pub struct SDTSignature {
@@ -77,7 +76,7 @@ impl SDTHeader {
         self.signature == sdt_signature.inner
     }
 
-    pub fn valid_checksum(&self, raw_sdt_start_address: u64) -> bool {
+    pub fn valid_checksum(&self, raw_sdt_start_address: usize) -> bool {
         let virtual_start_address = VirtualAddress::with_kernel_base_offset(raw_sdt_start_address);
         let raw_sdt_byte_slice =
             unsafe { from_raw_parts(virtual_start_address.inner as *const _, self.length as usize) };
@@ -89,7 +88,7 @@ impl SDTHeader {
 
     // We should read the header directly, then parse it to build the specific SDT struct
     pub unsafe fn try_read_from_phys_addr(
-        raw_sdt_physical_address: u64,
+        raw_sdt_physical_address: usize,
         sdt_signature: &SDTSignature,
     ) -> Result<Self, SDTHeaderError> {
         let sdt_virtual_address = VirtualAddress::with_kernel_base_offset(raw_sdt_physical_address);
@@ -126,5 +125,5 @@ impl core::fmt::Display for SDTHeaderError {
 }
 
 pub trait SystemDescriptorTable {
-    unsafe fn read_from_raw_address(raw_sdt_physical_address: u64) -> Self;
+    unsafe fn read_from_raw_address(raw_sdt_physical_address: usize) -> Self;
 }

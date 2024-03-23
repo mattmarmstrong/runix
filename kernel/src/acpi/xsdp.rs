@@ -4,8 +4,7 @@ use core::ptr::{
 };
 use core::str;
 
-use crate::mmu::virtual_address::VirtualAddress;
-use crate::mmu::KERNEL_BASE_ADDRESS;
+use crate::mmu::address::VirtualAddress;
 
 pub const XSDP_SIGNATURE: [u8; 8] = *b"RSD PTR ";
 
@@ -18,7 +17,7 @@ pub struct XSDP {
     revision: u8,
     rsdt_address: u32,
     length: u32,
-    pub xsdt_address: u64,
+    pub xsdt_address: usize,
     extended_checksum: u8,
     _reserved: [u8; 3],
 }
@@ -77,12 +76,13 @@ impl XSDP {
         self.signature == XSDP_SIGNATURE
     }
 
+    #[allow(dead_code)]
     fn valid_extended_checksum(&self) -> bool {
         // TODO: FIX-ME
         (self.extended_checksum & 0xFF) == 0
     }
 
-    unsafe fn try_read_from_raw_address(raw_xsdp_physical_address: u64) -> Result<XSDP, XSDPError> {
+    unsafe fn try_read_from_raw_address(raw_xsdp_physical_address: usize) -> Result<XSDP, XSDPError> {
         let rsdp_virtual_address = VirtualAddress::with_kernel_base_offset(raw_xsdp_physical_address);
         let xsdp_ref = rsdp_virtual_address.inner as *const XSDP;
         let xsdp: XSDP = *xsdp_ref;
@@ -92,7 +92,7 @@ impl XSDP {
         }
     }
 
-    pub fn init(raw_rsdp_physical_address: u64) -> XSDP {
+    pub fn init(raw_rsdp_physical_address: usize) -> XSDP {
         unsafe { XSDP::try_read_from_raw_address(raw_rsdp_physical_address).unwrap() }
     }
 }

@@ -11,39 +11,39 @@ use crate::interrupts::idt::{
     GateOptions,
     InterruptDescriptorTable,
 };
-use crate::mmu::virtual_address::VirtualAddress;
+use crate::mmu::address::VirtualAddress;
 use crate::segmentation::tss::*;
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 // These are the register values that the CPU pushes to the stack when an exception occurs
 pub struct ExceptionRegisters {
-    rip: u64,
-    cs: u64,
-    rflags: u64,
-    rsp: u64,
-    ss: u64,
+    rip: usize,
+    cs: usize,
+    rflags: usize,
+    rsp: usize,
+    ss: usize,
 }
 
 // Register values that are manually pushed to stack during interrupts.
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct ExecutionState {
-    r15: u64,
-    r14: u64,
-    r13: u64,
-    r12: u64,
-    r11: u64,
-    r10: u64,
-    r9: u64,
-    r8: u64,
-    rbp: u64,
-    rdi: u64,
-    rsi: u64,
-    rdx: u64,
-    rcx: u64,
-    rbx: u64,
-    rax: u64,
+    r15: usize,
+    r14: usize,
+    r13: usize,
+    r12: usize,
+    r11: usize,
+    r10: usize,
+    r9: usize,
+    r8: usize,
+    rbp: usize,
+    rdi: usize,
+    rsi: usize,
+    rdx: usize,
+    rcx: usize,
+    rbx: usize,
+    rax: usize,
 }
 
 impl core::fmt::Display for ExceptionRegisters {
@@ -89,7 +89,7 @@ pub struct ExceptionStackFrame {
 #[repr(C)]
 pub struct ExceptionStackFrameWithErrorCode {
     execution_state: ExecutionState,
-    error_code: u64,
+    error_code: usize,
     interrupt_registers: ExceptionRegisters,
 }
 
@@ -135,23 +135,23 @@ lazy_static! {
 
         // Gate descriptors - Exceptions
         let mut divide_by_zero_gate_descriptor = GateDescriptor::new(GateOptions::exception_gate_options());
-        divide_by_zero_gate_descriptor.set_handler_address(VirtualAddress::new(divide_by_zero as u64));
+        divide_by_zero_gate_descriptor.set_handler_address(VirtualAddress::new(divide_by_zero as usize));
 
         let double_fault_gate_options = GateOptions::exception_gate_options().set_stack_index(DOUBLE_FAULT_STACK_TABLE_INDEX);
         let mut double_fault_gate_descriptor = GateDescriptor::new(double_fault_gate_options);
-        double_fault_gate_descriptor.set_handler_address(VirtualAddress::new(double_fault as u64));
+        double_fault_gate_descriptor.set_handler_address(VirtualAddress::new(double_fault as usize));
 
         let page_fault_gate_options = GateOptions::exception_gate_options().set_stack_index(PAGE_FAULT_STACK_TABLE_INDEX);
         let mut page_fault_gate_descriptor = GateDescriptor::new(page_fault_gate_options);
-        page_fault_gate_descriptor.set_handler_address(VirtualAddress::new(page_fault as u64));
+        page_fault_gate_descriptor.set_handler_address(VirtualAddress::new(page_fault as usize));
 
 
         // Gate descriptors - IRQs
         let mut lapic_timer_irq_gate_descriptor = GateDescriptor::new(GateOptions::trap_gate_options());
-        lapic_timer_irq_gate_descriptor.set_handler_address(VirtualAddress::new(lapic_timer_interrupt as u64));
+        lapic_timer_irq_gate_descriptor.set_handler_address(VirtualAddress::new(lapic_timer_interrupt as usize));
 
         let mut lapic_spurious_irq_gate_descriptor = GateDescriptor::new(GateOptions::trap_gate_options());
-        lapic_spurious_irq_gate_descriptor.set_handler_address(VirtualAddress::new(lapic_spurious_interrupt as u64));
+        lapic_spurious_irq_gate_descriptor.set_handler_address(VirtualAddress::new(lapic_spurious_interrupt as usize));
 
         // Exceptions
         idt.descriptor_table[InterruptVector::DIVIDE_ERROR] = divide_by_zero_gate_descriptor;

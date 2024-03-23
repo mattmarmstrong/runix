@@ -9,11 +9,10 @@ use crate::cpu::pit::{
 };
 use crate::cpu::CPU_INFO;
 use crate::interrupts::InterruptVector;
-use crate::mmu::virtual_address::VirtualAddress;
-use crate::mmu::KERNEL_BASE_ADDRESS;
+use crate::mmu::address::VirtualAddress;
 
 // TODO: Check if there is an MSR, Read the MSR value
-const IA32_APIC_BASE_MSR: u64 = 0x1B;
+const IA32_APIC_BASE_MSR: usize = 0x1B;
 
 // If this bit is set in a LAPIC register, the corresponding interrupt is masked
 const LAPIC_INTERRUPT_MASK: u32 = 1 << 16;
@@ -46,12 +45,12 @@ pub struct LocalAPIC {
 
 impl LocalAPIC {
     pub fn read_register(&self, register_offset: u32) -> u32 {
-        let register_address = VirtualAddress::with_offset(self.virtual_address.inner, register_offset as u64);
+        let register_address = VirtualAddress::with_offset(self.virtual_address.inner, register_offset as usize);
         unsafe { core::ptr::read_volatile(register_address.inner as *const u32) }
     }
 
     pub fn write_to_register(&self, register_offset: u32, value: u32) {
-        let register_address = VirtualAddress::with_offset(self.virtual_address.inner, register_offset as u64);
+        let register_address = VirtualAddress::with_offset(self.virtual_address.inner, register_offset as usize);
         unsafe { core::ptr::write_volatile(register_address.inner as *mut u32, value) }
     }
 
@@ -117,7 +116,7 @@ impl LocalAPIC {
     pub fn try_read_and_init_from_madt() -> Option<Self> {
         let cpu_info = CPU_INFO.get().unwrap();
         if cpu_info.apic_enabled {
-            let raw_physical_address_base: u64;
+            let raw_physical_address_base: usize;
             match cpu_info.msr_present {
                 true => {
                     let apic_msr_read_value = unsafe { read_msr_value(IA32_APIC_MSR_BASE) };
@@ -128,9 +127,9 @@ impl LocalAPIC {
                     let apic_headers = &ACPI_TABLES.get().unwrap().madt.apic_headers;
                     match apic_structures.local_apic_address_override {
                         Some(lapic_address_override_record) => {
-                            raw_physical_address_base = lapic_address_override_record.local_apic_address_64
+                            raw_physical_address_base = lapic_address_override_record.local_apic_address_64 as usize
                         }
-                        None => raw_physical_address_base = apic_headers.madt_header.lapic_address as u64,
+                        None => raw_physical_address_base = apic_headers.madt_header.lapic_address as usize,
                     }
                 }
             }

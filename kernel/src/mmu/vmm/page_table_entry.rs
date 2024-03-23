@@ -1,37 +1,37 @@
+use crate::mmu::address::PhysicalAddress;
 use crate::mmu::vmm::frame::PhysicalFrame;
-use crate::mmu::PhysicalAddress;
 use crate::util::bits::{
     is_bit_set,
     set_bit,
 };
 
-const PHYSICAL_ADDRESS_MASK: u64 = 0x000F_FFFF_FFFF_F000;
+const PHYSICAL_ADDRESS_MASK: usize = 0x000F_FFFF_FFFF_F000;
 
 // Entry flags
 #[non_exhaustive]
 pub enum PageTableEntryFlags {}
 
 impl PageTableEntryFlags {
-    pub const PRESENT: u64 = 1;
-    pub const WRITE_ACCESS: u64 = 1 << 1;
-    pub const USER_ACCESS: u64 = 1 << 2;
-    pub const WRITE_THROUGH: u64 = 1 << 3;
-    pub const CACHE_DISABLED: u64 = 1 << 4;
-    pub const ACCESSED: u64 = 1 << 5;
+    pub const PRESENT: usize = 1;
+    pub const WRITE_ACCESS: usize = 1 << 1;
+    pub const USER_ACCESS: usize = 1 << 2;
+    pub const WRITE_THROUGH: usize = 1 << 3;
+    pub const CACHE_DISABLED: usize = 1 << 4;
+    pub const ACCESSED: usize = 1 << 5;
     // Shoutout to the Black-eyed Peas
-    pub const DIRTY: u64 = 1 << 6;
-    pub const LARGE_PAGE_SIZE: u64 = 1 << 7;
-    pub const GLOBAL: u64 = 1 << 8;
+    pub const DIRTY: usize = 1 << 6;
+    pub const LARGE_PAGE_SIZE: usize = 1 << 7;
+    pub const GLOBAL: usize = 1 << 8;
 }
 
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct PageTableEntry {
-    inner: u64,
+    inner: usize,
 }
 
 impl PageTableEntry {
-    pub fn new(flags: u64, physical_address: PhysicalAddress) -> Self {
+    pub fn new(flags: usize, physical_address: PhysicalAddress) -> Self {
         PageTableEntry {
             inner: (flags & physical_address.inner),
         }
@@ -52,21 +52,21 @@ impl PageTableEntry {
     }
 
     #[inline]
-    pub fn flags(&self) -> u64 {
+    pub fn flags(&self) -> usize {
         self.inner & 0xFF
     }
 
     #[inline]
-    pub fn is_flag_set(&self, entry_flag: u64) -> bool {
+    pub fn is_flag_set(&self, entry_flag: usize) -> bool {
         is_bit_set(self.inner, entry_flag)
     }
     #[inline]
-    pub fn set_flag(&mut self, entry_flag: u64) {
+    pub fn set_flag(&mut self, entry_flag: usize) {
         self.inner = set_bit(self.inner, entry_flag)
     }
 
     #[inline]
-    pub fn set_flags(&mut self, entry_flags: u64) {
+    pub fn set_flags(&mut self, entry_flags: usize) {
         self.inner |= entry_flags
     }
 

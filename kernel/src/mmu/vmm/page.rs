@@ -1,6 +1,6 @@
+use crate::mmu::address::VirtualAddress;
 use crate::mmu::vmm::asm::flush;
 use crate::mmu::vmm::Size;
-use crate::mmu::VirtualAddress;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
@@ -8,16 +8,16 @@ pub struct VirtualPage {
     pub offset: VirtualAddress,
 }
 
-impl core::ops::Add<u64> for VirtualPage {
+impl core::ops::Add<usize> for VirtualPage {
     type Output = Self;
 
-    fn add(self, rhs: u64) -> Self::Output {
+    fn add(self, rhs: usize) -> Self::Output {
         VirtualPage::from_address_aligned(self.offset + (rhs * Size::FOUR_KIB))
     }
 }
 
-impl core::ops::AddAssign<u64> for VirtualPage {
-    fn add_assign(&mut self, rhs: u64) {
+impl core::ops::AddAssign<usize> for VirtualPage {
+    fn add_assign(&mut self, rhs: usize) {
         *self = *self + rhs;
     }
 }

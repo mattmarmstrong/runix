@@ -1,7 +1,4 @@
-use crate::acpi::sdt::{
-    SDTHeader,
-    SystemDescriptorTable,
-};
+use crate::acpi::sdt::SDTHeader;
 
 // TODO: Everything FADT related
 #[derive(Debug, Clone, Copy)]

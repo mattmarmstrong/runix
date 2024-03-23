@@ -1,6 +1,8 @@
-use crate::mmu::alloc::FrameAllocator;
-use crate::mmu::physical_address::PhysicalAddress;
-use crate::mmu::virtual_address::VirtualAddress;
+use crate::mmu::address::{
+    PhysicalAddress,
+    VirtualAddress,
+};
+use crate::mmu::alloc::frame::FrameAllocator;
 use crate::mmu::vmm::asm::flush;
 use crate::mmu::vmm::asm::get_raw_pml4_ptr;
 use crate::mmu::vmm::frame::PhysicalFrame;
@@ -49,7 +51,7 @@ impl PageTable {
         &self,
         offset: VirtualAddress,
         mut entry: PageTableEntry,
-        flags: u64,
+        flags: usize,
         frame_allocator: &mut impl FrameAllocator,
     ) -> Self {
         let created: bool;
@@ -81,7 +83,7 @@ pub struct MappedPageTable {
 }
 
 impl MappedPageTable {
-    pub fn from_pml4(offset: VirtualAddress, page_table: PageTable) -> Self {
+    pub fn new(offset: VirtualAddress, page_table: PageTable) -> Self {
         Self { page_table, offset }
     }
 
@@ -125,8 +127,8 @@ impl MappedPageTable {
         &mut self,
         page: VirtualPage,
         frame: PhysicalFrame,
-        entry_flags: u64,
-        table_flags: u64,
+        entry_flags: usize,
+        table_flags: usize,
         should_flush_page: bool,
         frame_allocator: &mut impl FrameAllocator,
     ) {

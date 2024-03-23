@@ -1,9 +1,9 @@
+use crate::mmu::address::{
+    PhysicalAddress,
+    VirtualAddress,
+};
 use crate::mmu::vmm::page_table::PageTable;
 use crate::mmu::vmm::Size;
-use crate::mmu::{
-    virtual_address::VirtualAddress,
-    PhysicalAddress,
-};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(C)]
@@ -11,22 +11,22 @@ pub struct PhysicalFrame {
     pub offset: PhysicalAddress,
 }
 
-impl core::ops::Add<u64> for PhysicalFrame {
+impl core::ops::Add<usize> for PhysicalFrame {
     type Output = Self;
 
-    fn add(self, rhs: u64) -> Self::Output {
+    fn add(self, rhs: usize) -> Self::Output {
         PhysicalFrame::from_address_aligned(self.offset + (rhs * Size::FOUR_KIB))
     }
 }
 
-impl core::ops::AddAssign<u64> for PhysicalFrame {
-    fn add_assign(&mut self, rhs: u64) {
+impl core::ops::AddAssign<usize> for PhysicalFrame {
+    fn add_assign(&mut self, rhs: usize) {
         *self = *self + rhs;
     }
 }
 
 impl PhysicalFrame {
-    pub fn from_raw_address_aligned(raw_physical_address: u64) -> Self {
+    pub fn from_raw_address_aligned(raw_physical_address: usize) -> Self {
         let aligned_raw_address = !(Size::FOUR_KIB - 1) & raw_physical_address;
         PhysicalFrame {
             offset: PhysicalAddress::new(aligned_raw_address),
@@ -46,7 +46,7 @@ impl PhysicalFrame {
         unsafe { *(raw_virtual_address as *const PageTable) }
     }
 
-    pub fn start_address(&self) -> u64 {
+    pub fn start_address(&self) -> usize {
         self.offset.inner
     }
 }

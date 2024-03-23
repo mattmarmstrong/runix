@@ -11,5 +11,5 @@ pub fn init(boot_info: &'static mut BootInfo) {
         .into_option()
         .unwrap();
     init_kernel_logging(framebuffer);
-    read_acpi_tables(boot_info.rsdp_addr.into_option().unwrap());
+    read_acpi_tables(boot_info.rsdp_addr.into_option().unwrap() as usize);
 }

@@ -1,7 +1,7 @@
 use core::arch::asm;
 use core::mem::size_of;
 
-use crate::mmu::virtual_address::VirtualAddress;
+use crate::mmu::address::VirtualAddress;
 use crate::segmentation::asm::get_cs;
 use crate::segmentation::gdt::SegmentSelector;
 
@@ -20,7 +20,7 @@ impl InterruptDescriptorTable {
 
     pub fn pointer(&self) -> IdtPointer {
         let limit = (size_of::<Self>() - 1) as u16;
-        let base = VirtualAddress::new(self as *const _ as u64);
+        let base = VirtualAddress::new(self as *const _ as usize);
         IdtPointer { limit, base }
     }
 

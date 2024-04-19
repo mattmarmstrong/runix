@@ -12,12 +12,13 @@ use crate::interrupts::idt::{
     InterruptDescriptorTable,
 };
 use crate::mmu::address::VirtualAddress;
+use crate::process::RegisterState;
 use crate::segmentation::tss::*;
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 // These are the register values that the CPU pushes to the stack when an exception occurs
-pub struct ExceptionRegisters {
+pub struct ExcRegisterState {
     rip: usize,
     cs: usize,
     rflags: usize,
@@ -25,28 +26,7 @@ pub struct ExceptionRegisters {
     ss: usize,
 }
 
-// Register values that are manually pushed to stack during interrupts.
-#[derive(Debug, Clone, Copy)]
-#[repr(C)]
-pub struct ExecutionState {
-    r15: usize,
-    r14: usize,
-    r13: usize,
-    r12: usize,
-    r11: usize,
-    r10: usize,
-    r9: usize,
-    r8: usize,
-    rbp: usize,
-    rdi: usize,
-    rsi: usize,
-    rdx: usize,
-    rcx: usize,
-    rbx: usize,
-    rax: usize,
-}
-
-impl core::fmt::Display for ExceptionRegisters {
+impl core::fmt::Display for ExcRegisterState {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_fmt(format_args!(
             "RIP: {:#X} CS: {:#X} RFLAGS: {:#X}\nRSP: {:#X} SS: {:#X}",
@@ -55,42 +35,19 @@ impl core::fmt::Display for ExceptionRegisters {
     }
 }
 
-impl core::fmt::Display for ExecutionState {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_fmt(format_args!(
-            "RAX: {:#X} RBX: {:#X} RCX: {:#X}\nRDX: {:#X} RSI: {:#X} RDI: {:#X}\nRBP: {:#X} R8: {:#X} R9: {:#X}\nR10: {:#X} R11: {:#X} R12: {:#X}\nR13: {:#X} R14: {:#X} R15: {:#X}",
-            self.rax,
-            self.rbx,
-            self.rcx,
-            self.rdx,
-            self.rsi,
-            self.rdi,
-            self.rbp,
-            self.r8,
-            self.r9,
-            self.r10,
-            self.r11,
-            self.r12,
-            self.r13,
-            self.r14,
-            self.r15,
-        ))
-    }
-}
-
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct ExceptionStackFrame {
-    execution_state: ExecutionState,
-    interrupt_registers: ExceptionRegisters,
+    execution_state: RegisterState,
+    interrupt_registers: ExcRegisterState,
 }
 
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct ExceptionStackFrameWithErrorCode {
-    execution_state: ExecutionState,
+    execution_state: RegisterState,
     error_code: usize,
-    interrupt_registers: ExceptionRegisters,
+    interrupt_registers: ExcRegisterState,
 }
 
 #[derive(Debug, Clone, Copy)]

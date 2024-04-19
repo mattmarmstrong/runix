@@ -7,12 +7,22 @@ use crate::mmu::address::VirtualAddress;
 
 struct ListNode {
     size: usize,
+    prev: Option<&'static mut ListNode>,
     next: Option<&'static mut ListNode>,
+}
+
+struct ListNodeData {
+    addr: *mut u8,
+    size: usize,
 }
 
 impl ListNode {
     pub fn new(size: usize) -> Self {
-        Self { size, next: None }
+        Self {
+            size,
+            prev: None,
+            next: None,
+        }
     }
 
     pub fn start_addr(&self) -> VirtualAddress {
@@ -24,6 +34,7 @@ impl ListNode {
     }
 }
 
+#[inline]
 fn check_region(addr: VirtualAddress, size: usize) {
     assert_eq!(addr.align_up(core::mem::align_of::<ListNode>()), addr);
     assert!(size >= core::mem::size_of::<ListNode>());

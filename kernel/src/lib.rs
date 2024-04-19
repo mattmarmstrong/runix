@@ -12,6 +12,7 @@ pub mod cpu;
 pub mod device;
 pub mod interrupts;
 pub mod mmu;
+pub mod process;
 pub mod segmentation;
 pub mod syscall;
 pub mod util;

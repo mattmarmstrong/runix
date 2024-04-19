@@ -1,7 +1,9 @@
-use core::alloc::{Layout, GlobalAlloc};
+use core::alloc::{
+    GlobalAlloc,
+    Layout,
+};
 
 use crate::mmu::alloc::heap::linked_list::LinkedListAllocator;
-use crate::mmu::alloc::heap::HeapAllocator;
 
 pub const BLOCK_SIZES: &[usize] = &[8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
 
@@ -16,6 +18,11 @@ struct FreeBlock {
 }
 
 impl FreeBlock {
+    #[inline]
+    pub fn new(next: Option<&'static mut FreeBlock>) -> Self {
+        Self { next }
+    }
+
     #[inline]
     pub fn addr(&self) -> usize {
         self as *const _ as usize
@@ -39,13 +46,26 @@ unsafe impl GlobalAlloc for FixedSizedBlockAllocator {
                     let block_size = BLOCK_SIZES[index];
                     let block_align = block_size;
                     let layout = Layout::from_size_align(block_size, block_align).unwrap();
-                    self.fallback_allocator.allocate_first_fit(layout)
+                    self.fallback_allocator.alloc(layout)
                 }
             },
-            None => 
+            None => self.fallback_allocator.alloc(layout),
         }
     }
-    
+
+    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+        match get_block_size_index(layout) {
+            Some(index) => {
+                let block = FreeBlock::new(self.free_lists[index].take());
+                debug_assert!(core::mem::size_of::<FreeBlock>() <= BLOCK_SIZES[index]);
+                debug_assert!(core::mem::align_of::<FreeBlock>() <= BLOCK_SIZES[index]);
+                let block_ptr = ptr as *mut FreeBlock;
+                block_ptr.write(block);
+                self.free_lists[index] = Some(&mut *block_ptr);
+            }
+            None => self.fallback_allocator.dealloc(ptr, layout),
+        }
+    }
 }
 
 impl FixedSizedBlockAllocator {
@@ -56,6 +76,4 @@ impl FixedSizedBlockAllocator {
             fallback_allocator: LinkedListAllocator::new(),
         }
     }
-    
-
 }

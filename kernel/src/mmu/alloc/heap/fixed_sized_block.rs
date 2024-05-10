@@ -3,9 +3,11 @@ use core::alloc::{
     Layout,
 };
 
-use crate::mmu::alloc::heap::linked_list::LinkedListAllocator;
+use super::linked_list::LinkedListAllocator;
+use super::Locked;
+use crate::mmu::address::VirtualAddress;
 
-pub const BLOCK_SIZES: &[usize] = &[8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
+const BLOCK_SIZES: &[usize] = &[8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
 
 fn get_block_size_index(layout: Layout) -> Option<usize> {
     let required_size = layout.size().max(layout.align());
@@ -13,67 +15,68 @@ fn get_block_size_index(layout: Layout) -> Option<usize> {
 }
 
 #[derive(Debug)]
-struct FreeBlock {
-    next: Option<&'static mut FreeBlock>,
+struct Block {
+    next: Option<&'static mut Block>,
 }
 
-impl FreeBlock {
+impl Block {
     #[inline]
-    pub fn new(next: Option<&'static mut FreeBlock>) -> Self {
+    pub fn new(next: Option<&'static mut Block>) -> Self {
         Self { next }
     }
-
-    #[inline]
-    pub fn addr(&self) -> usize {
-        self as *const _ as usize
-    }
 }
 
-pub struct FixedSizedBlockAllocator {
-    free_lists: [Option<&'static mut FreeBlock>; BLOCK_SIZES.len()],
+pub struct BlockAllocator {
+    free_lists: [Option<&'static mut Block>; BLOCK_SIZES.len()],
     fallback_allocator: LinkedListAllocator,
 }
 
-unsafe impl GlobalAlloc for FixedSizedBlockAllocator {
+unsafe impl GlobalAlloc for Locked<BlockAllocator> {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        let mut allocator = self.lock();
         match get_block_size_index(layout) {
-            Some(index) => match self.free_lists[index].take() {
+            Some(index) => match allocator.free_lists[index].take() {
                 Some(node) => {
-                    self.free_lists[index] = node.next.take();
-                    node as *mut FreeBlock as *mut u8
+                    allocator.free_lists[index] = node.next.take();
+                    node as *mut Block as *mut u8
                 }
                 None => {
                     let block_size = BLOCK_SIZES[index];
                     let block_align = block_size;
                     let layout = Layout::from_size_align(block_size, block_align).unwrap();
-                    self.fallback_allocator.alloc(layout)
+                    allocator.fallback_allocator.alloc_first_fit(layout)
                 }
             },
-            None => self.fallback_allocator.alloc(layout),
+            None => allocator.fallback_allocator.alloc_first_fit(layout),
         }
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+        let mut allocator = self.lock();
         match get_block_size_index(layout) {
             Some(index) => {
-                let block = FreeBlock::new(self.free_lists[index].take());
-                debug_assert!(core::mem::size_of::<FreeBlock>() <= BLOCK_SIZES[index]);
-                debug_assert!(core::mem::align_of::<FreeBlock>() <= BLOCK_SIZES[index]);
-                let block_ptr = ptr as *mut FreeBlock;
+                let block = Block::new(allocator.free_lists[index].take());
+                debug_assert!(core::mem::size_of::<Block>() <= BLOCK_SIZES[index]);
+                debug_assert!(core::mem::align_of::<Block>() <= BLOCK_SIZES[index]);
+                let block_ptr = ptr as *mut Block;
                 block_ptr.write(block);
-                self.free_lists[index] = Some(&mut *block_ptr);
+                allocator.free_lists[index] = Some(&mut *block_ptr);
             }
-            None => self.fallback_allocator.dealloc(ptr, layout),
+            None => allocator.fallback_allocator.free(ptr, layout),
         }
     }
 }
 
-impl FixedSizedBlockAllocator {
-    pub fn new() -> Self {
-        const EMPTY: Option<&'static mut FreeBlock> = None;
+impl BlockAllocator {
+    pub const fn new() -> Self {
+        const EMPTY: Option<&'static mut Block> = None;
         Self {
             free_lists: [EMPTY; BLOCK_SIZES.len()],
             fallback_allocator: LinkedListAllocator::new(),
         }
+    }
+
+    pub unsafe fn init(&mut self, start: VirtualAddress, size: usize) {
+        self.fallback_allocator.init(start, size);
     }
 }

@@ -11,7 +11,7 @@ use bootloader_api::{
 };
 
 const BOOTLOADER_CONFIG: BootloaderConfig = {
-    let physical_mapping_offset = kernel::mmu::KERNEL_BASE_ADDRESS;
+    let physical_mapping_offset = kernel::mmu::KERNEL_BASE_ADDRESS as u64;
     let kernel_stack_size: u64 = 1024 * 1024;
     let mut boot_config = BootloaderConfig::new_default();
     boot_config.kernel_stack_size = kernel_stack_size;
@@ -27,7 +27,8 @@ fn kmain(boot_info: &'static mut BootInfo) -> ! {
     kernel::boot::init(boot_info);
     kernel::segmentation::init_gdt();
     kernel::interrupts::init_idt();
-    kernel::cpu::init_cpu_intrinsics();
+    // kernel::cpu::init_cpu_intrinsics();
+    kernel::mmu::alloc::init_kheap(boot_info);
     log::info!("{}", kernel::cpu::CPU_INFO.get().unwrap());
     loop {}
 }

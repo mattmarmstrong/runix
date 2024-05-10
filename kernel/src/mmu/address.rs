@@ -1,4 +1,6 @@
-use crate::mmu::KERNEL_BASE_ADDRESS;
+use core::ops;
+
+use super::KERNEL_BASE_ADDRESS;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
@@ -11,7 +13,7 @@ pub struct InvalidVirtualAddress {
     pub inner: usize,
 }
 
-impl core::ops::Add for VirtualAddress {
+impl ops::Add for VirtualAddress {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         let raw_add_result = self.inner + rhs.inner;
@@ -19,14 +21,14 @@ impl core::ops::Add for VirtualAddress {
     }
 }
 
-impl core::ops::Add<usize> for VirtualAddress {
+impl ops::Add<usize> for VirtualAddress {
     type Output = Self;
     fn add(self, rhs: usize) -> Self::Output {
         VirtualAddress::new(self.inner + rhs)
     }
 }
 
-impl core::ops::Sub for VirtualAddress {
+impl ops::Sub for VirtualAddress {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
         let raw_sub_result = self.inner + rhs.inner;
@@ -34,7 +36,7 @@ impl core::ops::Sub for VirtualAddress {
     }
 }
 
-impl core::ops::Sub<usize> for VirtualAddress {
+impl ops::Sub<usize> for VirtualAddress {
     type Output = Self;
     fn sub(self, rhs: usize) -> Self::Output {
         VirtualAddress::new(self.inner - rhs)
@@ -135,7 +137,7 @@ pub struct InvalidPhysicalAddress {
     pub inner: usize,
 }
 
-impl core::ops::Add for PhysicalAddress {
+impl ops::Add for PhysicalAddress {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         let raw_add_result = self.inner + rhs.inner;
@@ -143,14 +145,14 @@ impl core::ops::Add for PhysicalAddress {
     }
 }
 
-impl core::ops::Add<usize> for PhysicalAddress {
+impl ops::Add<usize> for PhysicalAddress {
     type Output = Self;
     fn add(self, rhs: usize) -> Self::Output {
         PhysicalAddress::new(self.inner + rhs)
     }
 }
 
-impl core::ops::Sub for PhysicalAddress {
+impl ops::Sub for PhysicalAddress {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
         let raw_sub_result = self.inner + rhs.inner;
@@ -158,7 +160,7 @@ impl core::ops::Sub for PhysicalAddress {
     }
 }
 
-impl core::ops::Sub<usize> for PhysicalAddress {
+impl ops::Sub<usize> for PhysicalAddress {
     type Output = Self;
     fn sub(self, rhs: usize) -> Self::Output {
         PhysicalAddress::new(self.inner - rhs)

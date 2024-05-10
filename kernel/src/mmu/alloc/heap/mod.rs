@@ -1,12 +1,30 @@
-use core::alloc::Layout;
+use self::fixed_sized_block::BlockAllocator;
+use crate::mmu::address::VirtualAddress;
 
 pub mod fixed_sized_block;
 pub mod linked_list;
 
-pub const KERNEL_HEAP_START: usize = 0xDEAD_BEEF;
-pub const KERNEL_HEAP_SIZE: usize = 1 << 21; // 1 MB
+pub struct Locked<Alloc> {
+    inner: spin::Mutex<Alloc>,
+}
 
-pub trait HeapAllocator {
-    fn allocate(&self, layout: Layout) -> *mut u8;
-    fn deallocate(&self, ptr: *mut u8, layout: Layout);
+impl<Alloc> Locked<Alloc> {
+    pub const fn new(inner: Alloc) -> Self {
+        Self {
+            inner: spin::Mutex::new(inner),
+        }
+    }
+
+    pub fn lock(&self) -> spin::MutexGuard<Alloc> {
+        self.inner.lock()
+    }
+}
+
+#[global_allocator]
+static HEAP_ALLOCATOR: Locked<BlockAllocator> = Locked::new(BlockAllocator::new());
+
+pub(super) fn init_allocator(start: usize, size: usize) {
+    let start_addr = VirtualAddress::with_kernel_base_offset(start);
+    let mut allocator = HEAP_ALLOCATOR.lock();
+    unsafe { allocator.init(start_addr, size) }
 }

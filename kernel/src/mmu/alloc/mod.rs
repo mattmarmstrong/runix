@@ -1,17 +1,15 @@
 use bootloader_api::BootInfo;
 
-use self::heap::KERNEL_HEAP_SIZE;
-use crate::mmu::address::VirtualAddress;
-use crate::mmu::alloc::frame::boot::BootFrameAllocator;
-use crate::mmu::alloc::heap::KERNEL_HEAP_START;
+use self::frame::map_frames;
+use self::heap::init_allocator;
 
-pub mod alloc;
 pub mod frame;
 pub mod heap;
 
-fn map_kheap_frames(boot_info: &'static BootInfo) {
-    let mut boot_allocator = BootFrameAllocator::new(&boot_info.memory_regions);
-    let kheap_start_addr = VirtualAddress::with_kernel_base_offset(KERNEL_HEAP_START);
-    let kheap_end_addr = kheap_start_addr + KERNEL_HEAP_SIZE;
-    unsafe { boot_allocator.allocate_region(kheap_start_addr, kheap_end_addr) }
+pub const KERNEL_HEAP_START: usize = 0xDEAD_BEEF;
+pub const KERNEL_HEAP_SIZE: usize = 1 << 21; // 1 MB
+
+pub fn init_kheap(boot_info: &'static BootInfo) {
+    map_frames(boot_info, KERNEL_HEAP_START, KERNEL_HEAP_SIZE);
+    init_allocator(KERNEL_HEAP_START, KERNEL_HEAP_SIZE);
 }

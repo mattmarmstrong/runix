@@ -2,15 +2,17 @@ pub mod asm;
 pub mod handlers;
 pub mod idt;
 
-use lazy_static::lazy_static;
+use core::fmt;
 
-use crate::interrupts::asm::enable_interrupts;
-use crate::interrupts::handlers::*;
-use crate::interrupts::idt::{
+use asm::enable_interrupts;
+use handlers::*;
+use idt::{
     GateDescriptor,
     GateOptions,
     InterruptDescriptorTable,
 };
+use lazy_static::lazy_static;
+
 use crate::mmu::address::VirtualAddress;
 use crate::process::RegisterState;
 use crate::segmentation::tss::*;
@@ -26,8 +28,8 @@ pub struct ExcRegisterState {
     ss: usize,
 }
 
-impl core::fmt::Display for ExcRegisterState {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+impl fmt::Display for ExcRegisterState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_fmt(format_args!(
             "RIP: {:#X} CS: {:#X} RFLAGS: {:#X}\nRSP: {:#X} SS: {:#X}",
             self.rip, self.cs, self.rflags, self.rsp, self.ss
@@ -91,33 +93,33 @@ lazy_static! {
         let mut idt = InterruptDescriptorTable::new();
 
         // Gate descriptors - Exceptions
-        let mut divide_by_zero_gate_descriptor = GateDescriptor::new(GateOptions::exception_gate_options());
-        divide_by_zero_gate_descriptor.set_handler_address(VirtualAddress::new(divide_by_zero as usize));
+        let mut div_by_zero_gate_desc = GateDescriptor::new(GateOptions::exception_gate_options());
+        div_by_zero_gate_desc.set_handler_address(VirtualAddress::new(divide_by_zero as usize));
 
-        let double_fault_gate_options = GateOptions::exception_gate_options().set_stack_index(DOUBLE_FAULT_STACK_TABLE_INDEX);
-        let mut double_fault_gate_descriptor = GateDescriptor::new(double_fault_gate_options);
-        double_fault_gate_descriptor.set_handler_address(VirtualAddress::new(double_fault as usize));
+        let df_gate_opts = GateOptions::exception_gate_options().set_stack_index(DOUBLE_FAULT_STACK_TABLE_INDEX);
+        let mut df_gate_desc = GateDescriptor::new(df_gate_opts);
+        df_gate_desc.set_handler_address(VirtualAddress::new(double_fault as usize));
 
-        let page_fault_gate_options = GateOptions::exception_gate_options().set_stack_index(PAGE_FAULT_STACK_TABLE_INDEX);
-        let mut page_fault_gate_descriptor = GateDescriptor::new(page_fault_gate_options);
-        page_fault_gate_descriptor.set_handler_address(VirtualAddress::new(page_fault as usize));
+        let pf_gate_opts = GateOptions::exception_gate_options().set_stack_index(PAGE_FAULT_STACK_TABLE_INDEX);
+        let mut pf_gate_desc = GateDescriptor::new(pf_gate_opts);
+        pf_gate_desc.set_handler_address(VirtualAddress::new(page_fault as usize));
 
 
         // Gate descriptors - IRQs
-        let mut lapic_timer_irq_gate_descriptor = GateDescriptor::new(GateOptions::trap_gate_options());
-        lapic_timer_irq_gate_descriptor.set_handler_address(VirtualAddress::new(lapic_timer_interrupt as usize));
+        let mut lapic_timer_irq_gate_desc= GateDescriptor::new(GateOptions::trap_gate_options());
+        lapic_timer_irq_gate_desc.set_handler_address(VirtualAddress::new(lapic_timer_interrupt as usize));
 
-        let mut lapic_spurious_irq_gate_descriptor = GateDescriptor::new(GateOptions::trap_gate_options());
-        lapic_spurious_irq_gate_descriptor.set_handler_address(VirtualAddress::new(lapic_spurious_interrupt as usize));
+        let mut lapic_spurious_irq_gate_desc = GateDescriptor::new(GateOptions::trap_gate_options());
+        lapic_spurious_irq_gate_desc.set_handler_address(VirtualAddress::new(lapic_spurious_interrupt as usize));
 
         // Exceptions
-        idt.descriptor_table[InterruptVector::DIVIDE_ERROR] = divide_by_zero_gate_descriptor;
-        idt.descriptor_table[InterruptVector::DOUBLE_FAULT] = double_fault_gate_descriptor;
-        idt.descriptor_table[InterruptVector::PAGE_FAULT] = page_fault_gate_descriptor;
+        idt.descriptor_table[InterruptVector::DIVIDE_ERROR] = div_by_zero_gate_desc;
+        idt.descriptor_table[InterruptVector::DOUBLE_FAULT] = df_gate_desc;
+        idt.descriptor_table[InterruptVector::PAGE_FAULT] = pf_gate_desc;
 
         // IRQs
-        idt.descriptor_table[InterruptVector::APIC_TIMER] = lapic_timer_irq_gate_descriptor;
-        idt.descriptor_table[InterruptVector::APIC_SPURIOUS] = lapic_spurious_irq_gate_descriptor;
+        idt.descriptor_table[InterruptVector::APIC_TIMER] = lapic_timer_irq_gate_desc;
+        idt.descriptor_table[InterruptVector::APIC_SPURIOUS] = lapic_spurious_irq_gate_desc;
 
         idt
     };

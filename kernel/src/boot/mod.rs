@@ -11,5 +11,8 @@ pub fn init(boot_info: &'static mut BootInfo) {
         .into_option()
         .unwrap();
     init_kernel_logging(framebuffer);
-    read_acpi_tables(boot_info.rsdp_addr.into_option().unwrap() as usize);
+    let rsdp_addr = core::mem::replace(&mut boot_info.rsdp_addr, Optional::None)
+        .into_option()
+        .unwrap() as usize;
+    read_acpi_tables(rsdp_addr);
 }

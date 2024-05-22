@@ -25,10 +25,7 @@ entry_point!(kmain, config = &BOOTLOADER_CONFIG);
 
 fn kmain(boot_info: &'static mut BootInfo) -> ! {
     kernel::boot::init(boot_info);
-    kernel::segmentation::init_gdt();
-    kernel::interrupts::init_idt();
     // kernel::cpu::init_cpu_intrinsics();
-    kernel::mmu::alloc::init_kheap(boot_info);
     log::info!("{}", kernel::cpu::CPU_INFO.get().unwrap());
     loop {}
 }

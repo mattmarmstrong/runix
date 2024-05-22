@@ -5,7 +5,7 @@ use crate::util::bits::{
     set_bit,
 };
 
-const PHYSICAL_ADDRESS_MASK: usize = 0x000F_FFFF_FFFF_F000;
+pub const PHYSICAL_ADDRESS_MASK: usize = 0x000F_FFFF_FFFF_F000;
 
 // Entry flags
 #[non_exhaustive]
@@ -27,7 +27,7 @@ impl PageTableEntryFlags {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct PageTableEntry {
-    inner: usize,
+    pub inner: usize,
 }
 
 impl PageTableEntry {

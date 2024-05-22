@@ -59,6 +59,11 @@ impl LinkedListAllocator {
     }
 
     unsafe fn add_free_region(&mut self, addr: VirtualAddress, size: usize) {
+        log::info!(
+            "Adding free region\nStart: {:#X}, End: {:#X}",
+            addr.inner,
+            (addr.inner + size)
+        );
         check_region(addr, size);
         let mut node = ListNode::new(size);
         node.next = self.head.next.take();

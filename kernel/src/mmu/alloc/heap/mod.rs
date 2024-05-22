@@ -24,6 +24,7 @@ impl<Alloc> Locked<Alloc> {
 static HEAP_ALLOCATOR: Locked<BlockAllocator> = Locked::new(BlockAllocator::new());
 
 pub(super) fn init_allocator(start: usize, size: usize) {
+    log::info!("Initializing kernel heap allocator");
     let start_addr = VirtualAddress::with_kernel_base_offset(start);
     let mut allocator = HEAP_ALLOCATOR.lock();
     unsafe { allocator.init(start_addr, size) }

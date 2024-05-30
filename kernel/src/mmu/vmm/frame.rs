@@ -41,7 +41,7 @@ impl PhysicalFrame {
         }
     }
 
-    pub fn frame_to_page_table(&self, offset: VirtualAddress) -> PageTable {
+    pub fn frame_to_table_ptr(&self, offset: VirtualAddress) -> PageTable {
         let raw_virtual_address = offset.inner + self.offset.inner;
         unsafe { *(raw_virtual_address as *const PageTable) }
     }

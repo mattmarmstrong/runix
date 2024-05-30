@@ -71,18 +71,18 @@ impl PageTableEntry {
     }
 
     #[inline]
-    fn get_physical_address(&self) -> PhysicalAddress {
+    fn get_physical_addr(&self) -> PhysicalAddress {
         PhysicalAddress::new(self.inner & PHYSICAL_ADDRESS_MASK)
     }
 
-    pub fn get_physical_frame(&self) -> Option<PhysicalFrame> {
+    pub fn get_frame(&self) -> Option<PhysicalFrame> {
         match self.is_flag_set(PageTableEntryFlags::PRESENT) {
-            true => Some(PhysicalFrame::from_address_aligned(self.get_physical_address())),
+            true => Some(PhysicalFrame::from_address_aligned(self.get_physical_addr())),
             false => None,
         }
     }
 
-    pub fn set_physical_frame_address(&mut self, physical_frame: PhysicalFrame) {
+    pub fn set_frame_addr(&mut self, physical_frame: PhysicalFrame) {
         self.inner &= physical_frame.start_address()
     }
 }

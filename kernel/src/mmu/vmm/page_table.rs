@@ -46,8 +46,8 @@ impl PageTable {
         &mut *table_ptr
     }
 
-    fn next_page_table_option(offset: VirtualAddress, entry: PageTableEntry) -> Option<Self> {
-        match entry.get_physical_frame() {
+    fn next_table_opt(offset: VirtualAddress, entry: PageTableEntry) -> Option<Self> {
+        match entry.get_frame() {
             Some(frame) => Some(frame.frame_to_page_table(offset)),
             None => None,
         }
@@ -56,7 +56,7 @@ impl PageTable {
     pub fn get_next_page_table(
         &self,
         offset: VirtualAddress,
-        entry: &mut PageTableEntry,
+        mut entry: PageTableEntry,
         flags: usize,
         frame_allocator: &mut impl FrameAllocator,
     ) -> Self {
@@ -65,12 +65,12 @@ impl PageTable {
         match entry.is_unused() {
             true => {
                 physical_frame = frame_allocator.allocate_frame().unwrap();
-                entry.set_physical_frame_address(physical_frame);
+                entry.set_frame_addr(physical_frame);
                 created = true;
             }
             false => {
                 entry.set_flags(flags);
-                physical_frame = entry.get_physical_frame().unwrap();
+                physical_frame = entry.get_frame().unwrap();
                 created = false;
             }
         }
@@ -96,22 +96,22 @@ impl MappedPageTable {
     pub fn translate_virtual_address(&self, virtual_address: VirtualAddress) -> Option<PhysicalAddress> {
         let pml4_index = virtual_address.get_pml4_index();
         let pml4_entry = self.page_table.inner[pml4_index];
-        let pdpt_option = PageTable::next_page_table_option(self.offset, pml4_entry);
+        let pdpt_option = PageTable::next_table_opt(self.offset, pml4_entry);
         match pdpt_option {
             Some(pdpt) => {
                 let pdpt_index = virtual_address.get_pdpt_index();
                 let pdpt_entry = pdpt.inner[pdpt_index];
-                let pd_option = PageTable::next_page_table_option(self.offset, pdpt_entry);
+                let pd_option = PageTable::next_table_opt(self.offset, pdpt_entry);
                 match pd_option {
                     Some(pd) => {
                         let pd_index = virtual_address.get_pd_index();
                         let pd_entry = pd.inner[pd_index];
-                        let pt_option = PageTable::next_page_table_option(self.offset, pd_entry);
+                        let pt_option = PageTable::next_table_opt(self.offset, pd_entry);
                         match pt_option {
                             Some(pt) => {
                                 let pt_index = virtual_address.get_pt_index();
                                 let pt_entry = pt.inner[pt_index];
-                                let physical_frame_option = pt_entry.get_physical_frame();
+                                let physical_frame_option = pt_entry.get_frame();
                                 match physical_frame_option {
                                     Some(physical_frame) => Some(PhysicalAddress::new(
                                         physical_frame.start_address() + virtual_address.get_page_offset(),
@@ -139,25 +139,21 @@ impl MappedPageTable {
         frame_allocator: &mut impl FrameAllocator,
     ) {
         let virtual_address = page.offset;
-        let pml4_i = virtual_address.get_pml4_index();
-        let pdpt_i = virtual_address.get_pdpt_index();
-        let pd_i = virtual_address.get_pd_index();
-        let pt_i = virtual_address.get_pt_index();
         let pml4 = &mut self.page_table;
-        let mut pml4_entry = pml4.inner[pml4_i];
-        let pdpt = pml4.get_next_page_table(self.offset, &mut pml4_entry, table_flags, frame_allocator);
-        let mut pdpt_entry = pdpt.inner[pdpt_i];
-        let pd = pdpt.get_next_page_table(self.offset, &mut pdpt_entry, table_flags, frame_allocator);
-        let mut pd_entry = pd.inner[pd_i];
-        let mut pt = pd.get_next_page_table(self.offset, &mut pd_entry, table_flags, frame_allocator);
+        let pml4_entry = pml4.inner[virtual_address.get_pml4_index()];
+        let pdpt = pml4.get_next_page_table(self.offset, pml4_entry, table_flags, frame_allocator);
+        let pdpt_entry = pdpt.inner[virtual_address.get_pdpt_index()];
+        let pd = pdpt.get_next_page_table(self.offset, pdpt_entry, table_flags, frame_allocator);
+        let pd_entry = pd.inner[virtual_address.get_pd_index()];
+        let mut pt = pd.get_next_page_table(self.offset, pd_entry, table_flags, frame_allocator);
         let mut pt_entry = pt.inner[virtual_address.get_pt_index()];
 
         match pt_entry.is_unused() {
             true => {
-                pt_entry.set_physical_frame_address(frame);
+                pt_entry.set_frame_addr(frame);
                 pt_entry.set_flags(entry_flags);
                 // update the page table.
-                pt.inner[pt_i] = pt_entry;
+                pt.inner[virtual_address.get_pt_index()] = pt_entry;
                 if should_flush_page {
                     unsafe {
                         flush(virtual_address.inner);
